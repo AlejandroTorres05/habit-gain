@@ -211,7 +211,7 @@ tipo(alcance): descripción breve
 **Ejemplo:**
 
 ```bash
-git commit -m "feat: agregar login de usuarios"
+git commit -m "feat: add the login screen"
 ```
 
 ## Notas de Desarrollo
