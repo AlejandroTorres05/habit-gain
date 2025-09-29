@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ habito.nombre }} - Habit Gain{% endblock %}
+
+{% block content %}
+<div class="main-container detail-container">
+    <!-- Botón Volver -->
+    <div class="back-button-wrapper">
+        <button onclick="window.history.back()" class="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+            </svg>
+            Volver
+        </button>
+    </div>
+
+    <!-- Contenido del hábito -->
+    <div class="habit-detail">
+        <div class="habit-detail-icon">{{ habito.icono }}</div>
+        
+        <h1 class="habit-detail-title">{{ habito.nombre }}</h1>
+        
+        <div class="habit-detail-badge">
+            <span class="badge-category">{{ habito.categoria_nombre }}</span>
+            <span class="badge-frequency">{{ habito.frecuencia }}</span>
+        </div>
+
+        <div class="habit-detail-section">
+            <p class="habit-detail-description">{{ habito.descripcion_completa }}</p>
+        </div>
+
+        <div class="habit-detail-section">
+            <h3 class="section-subtitle">Por qué funciona</h3>
+            <div class="why-works-box">
+                <p>{{ habito.por_que_funciona }}</p>
+            </div>
+        </div>
+
+        <!-- Botón Añadir a mi Plan -->
+        <div class="action-button-wrapper">
+            <button class="btn-primary-custom btn-add-plan" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"/>
+                    <path d="M12 5v14"/>
+                </svg>
+                Añadir a mi Plan
+            </button>
+            <p class="coming-soon-text">(Próximamente)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
