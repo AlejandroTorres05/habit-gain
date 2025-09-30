@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4" style="max-width:580px">
+  <h2 class="text-light">Create habit</h2>
+  <form method="post" class="card p-4 bg-dark-subtle border-0 rounded-4">
+    <div class="mb-3">
+      <label class="form-label">Name</label>
+      <input class="form-control" name="name" placeholder="Read 10 minutes" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Habit stacking (optional) — after:</label>
+      <input class="form-control" name="stack_after" placeholder="Morning coffee">
+    </div>
+    <button class="btn btn-primary rounded-pill">Save</button>
+  </form>
+</div>
+{% endblock %}

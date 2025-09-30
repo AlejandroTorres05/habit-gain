@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 class="text-light">My Panel</h2>
+    <a class="btn btn-outline-light rounded-pill" href="{{ url_for('habits.create') }}">+ New habit</a>
+  </div>
+  <p class="text-secondary">Today: <strong>{{ completed }}</strong> of <strong>{{ total }}</strong></p>
+
+  <div class="row">
+    {% for h in habits %}
+    <div class="col-md-4 mb-3">
+      <div class="card bg-dark text-light rounded-4 p-3 h-100">
+        <div class="fw-semibold">{{ h.name }}</div>
+        {% if h.stack_after %}<div class="small text-info">After: {{ h.stack_after }}</div>{% endif %}
+        <div class="mt-auto">
+          {% if h.done %}
+          <span class="badge text-bg-success rounded-pill">Completed</span>
+          {% else %}
+          <form method="post" action="{{ url_for('habits_mark', habit_id=h.id) }}">
+            <button formaction="{{ url_for('habits_mark', habit_id=h.id) }}"
+              class="btn btn-primary btn-sm rounded-pill">Done</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <p class="text-secondary">No habits yet. Create one.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

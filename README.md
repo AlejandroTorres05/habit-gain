@@ -78,6 +78,10 @@ python -m venv venv
 # 3. Activar el entorno virtual
 .\venv\Scripts\Activate.ps1
 
+o 
+
+.\venv\bin\Activate.ps1
+
 # 4. Si hay error de permisos, ejecutar primero:
 # Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 

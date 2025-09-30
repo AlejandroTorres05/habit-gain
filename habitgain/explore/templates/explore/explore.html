@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Habit Library — HabitGain{% endblock %}
+{% block content %}
+<div class="main-container">
+  <header class="header-section">
+    <h1 class="main-title">Habit Gain</h1>
+    <h2 class="subtitle">Habit Library</h2>
+  </header>
+
+  <div class="search-section">
+    <div class="search-wrapper">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search habits...">
+    </div>
+  </div>
+
+  <div class="categories-section">
+    <div id="categoriesCarousel" class="carousel slide" data-bs-ride="false">
+      <div class="carousel-inner">
+        {% for i in range(0, categories|length, 2) %}
+        <div class="carousel-item {% if i == 0 %}active{% endif %}">
+          <div class="categories-grid">
+            {% for c in categories[i:i+2] %}
+            <div class="category-card" data-category-id="{{ c.id }}">
+              <div class="category-icon">{{ c.icon }}</div>
+              <div class="category-name">{{ c.name }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="carousel-indicators">
+        {% for i in range(0, categories|length, 2) %}
+        <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if i==0
+          %}class="active" {% endif %}></button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="habits-section">
+    <h3 class="section-title">Micro Habits</h3>
+    <div id="habitsList" class="habits-list">
+      {% for h in habits %}
+      <div class="habit-card" data-habit-id="{{ h.id }}">
+        <div class="habit-icon">{{ h.icon }}</div>
+        <div class="habit-info">
+          <div class="habit-name">{{ h.name }}</div>
+          <div class="habit-frequency">{{ h.frequency }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div id="noResults" class="no-results" style="display:none">
+      <p>No habits found</p>
+      <button class="btn-secondary-custom">Suggest one</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/explore.js') }}"></script>
+{% endblock %}
