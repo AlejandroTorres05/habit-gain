@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Explore{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">Explorar</h2>
+        <a href="{{ url_for('profile.edit') }}" class="btn btn-outline-primary rounded-pill">Mi perfil</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Categorías</h5>
+                    {% if categories %}
+                    <ul class="list-group list-group-flush">
+                        {% for c in categories %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <span class="me-2">🔖</span>
+                            <strong class="me-2">{{ c.name }}</strong>
+                            <span class="text-muted">{{ c.icon or "" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0">No hay categorías todavía.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Hábitos activos</h5>
+                    {% if habits %}
+                    <ul class="list-group list-group-flush">
+                        {% for h in habits %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ h.name }}</strong>
+                                    {% if h.short_desc %}
+                                    <div class="text-muted small">{{ h.short_desc }}</div>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-success">Activo</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0">Aún no tienes hábitos activos. Ve a crear alguno, campeón.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

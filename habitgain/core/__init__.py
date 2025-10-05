@@ -1,12 +1,24 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, redirect, url_for, session, render_template
 
 core_bp = Blueprint("core", __name__, template_folder="templates")
 
+
+def _is_logged_in() -> bool:
+    return "user" in session
+
+
 @core_bp.route("/")
 def home():
-    # direct users to explore for MVP
-    return redirect(url_for("explore.explore"))
+    # Si ya está logueado, mándalo a explorar
+    if _is_logged_in():
+        # <- antes decía explore.explore
+        return redirect(url_for("explore.home"))
+    # Si no hay sesión, manda a login (ajusta el endpoint si tu auth usa otro nombre)
+    return redirect(url_for("auth.login"))
 
-@core_bp.app_errorhandler(404)
-def not_found(_):
-    return render_template("404.html"), 404
+# Opcional: una ruta de salud si necesitas chequear que el server vive
+
+
+@core_bp.route("/healthz")
+def healthz():
+    return {"status": "ok"}, 200

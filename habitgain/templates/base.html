@@ -14,19 +14,28 @@
     <nav class="navbar navbar-dark">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('core.home') }}">HabitGain</a>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-center">
                 <a class="btn btn-sm btn-outline-light" href="{{ url_for('explore.explore') }}">Explore</a>
                 <a class="btn btn-sm btn-outline-light" href="{{ url_for('progress.panel') }}">Panel</a>
+
+                {% if session.user %}
+                <a class="btn btn-sm btn-outline-light" href="{{ url_for('profile.edit') }}">My Profile</a>
+                <a class="btn btn-sm btn-danger" href="{{ url_for('auth.logout') }}">Sign out</a>
+                {% else %}
                 <a class="btn btn-sm btn-primary" href="{{ url_for('auth.login') }}">Sign in</a>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="container mt-3">
+    <div class="container mt-3" style="max-width: 600px;">
         {% for cat, msg in messages %}
-        <div class="alert alert-{{cat}} rounded-4">{{ msg }}</div>
+        <div class="alert alert-{{cat}} rounded-4 alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
