@@ -430,6 +430,24 @@ class Habit:
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def list_active_by_owner_and_category(email: str, category_id: int):
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, owner_email, name, active, short_desc, category_id
+            FROM habits
+            WHERE owner_email=? AND active=1 AND (category_id = ?)
+            ORDER BY id DESC
+            """,
+            (email, category_id),
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+
 
 # -----------------------
 # Helper para perfil

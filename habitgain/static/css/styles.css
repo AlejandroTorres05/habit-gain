@@ -1,296 +1,170 @@
-/* ============================================
-   NUEVO TEMA: GLASSMORPHISM PÚRPURA
-   ============================================ */
-
-/* --------------------------------------------
-   1. VARIABLES Y ESTILOS GLOBALES
-   -------------------------------------------- */
+/* ===== Theme tokens ===== */
 :root {
-    /* Nueva paleta de colores (Tema Claro) */
-    --color-background-start: #f5f0ff;
-    /* Lavanda muy claro */
-    --color-background-end: #f0f9ff;
-    /* Azul cielo muy claro */
-    --color-primary-text: #4c2a85;
-    /* Morado oscuro para texto */
-    --color-secondary-text: #6b7280;
-    /* Gris para texto secundario */
-    --color-accent: #a855f7;
-    /* Morado vibrante para acentos */
-    --color-accent-glow: rgba(168, 85, 247, 0.6);
-    /* Resplandor morado */
-    --color-cyan-glow: rgba(59, 180, 255, 0.5);
-    /* Resplandor cian */
+    --bg: #eef2ff;
+    --ink: #0f1222;
+    --muted: #5b5e72;
 
-    /* Propiedades del efecto "Glass" */
-    --glass-background: rgba(255, 255, 255, 0.35);
-    --glass-border-color: rgba(255, 255, 255, 0.7);
-    --glass-blur-amount: 12px;
-    --glass-shadow: 0 8px 32px 0 rgba(107, 33, 168, 0.15);
-    /* Sombra suave morada */
+    --primary: #6b5bff;
+    /* purple */
+    --accent: #2bd2ff;
+    /* cyan */
+    --gradient-1: 217, 70, 239;
+    /* fuchsia-ish */
+    --gradient-2: 79, 70, 229;
+    /* indigo */
+    --gradient-3: 45, 212, 191;
+    /* teal */
 
-    /* Tipografía y transiciones */
-    --font-family: 'Poppins', sans-serif;
-    --transition-smooth: all 0.3s ease-in-out;
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-brd: rgba(255, 255, 255, 0.35);
+    --shadow: 0 10px 30px rgba(40, 70, 120, 0.15);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+html,
 body {
-    font-family: var(--font-family);
-    /* Fondo degradado suave y claro */
-    background: linear-gradient(160deg, var(--color-background-start) 0%, var(--color-background-end) 100%);
-    min-height: 100vh;
-    color: var(--color-primary-text);
-    /* Color de texto principal oscuro */
-    overflow-x: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100%;
 }
 
-/* --------------------------------------------
-   2. ESTILOS DE COMPONENTES "GLASS"
-   -------------------------------------------- */
-
-/* Estilo base para todos los elementos "Glass" */
-.glass-effect {
-    background: var(--glass-background);
-    backdrop-filter: blur(var(--glass-blur-amount));
-    -webkit-backdrop-filter: blur(var(--glass-blur-amount));
-    /* Para compatibilidad */
-    border: 1px solid var(--glass-border-color);
-    box-shadow: var(--glass-shadow);
-    transition: var(--transition-smooth);
+/* Neon-ish background */
+.bg-gradient {
+    position: fixed;
+    inset: -20vmax auto auto -10vmax;
+    width: 60vmax;
+    height: 60vmax;
+    background: radial-gradient(circle at 30% 30%,
+            rgba(var(--gradient-1), 0.35) 0%,
+            rgba(var(--gradient-2), 0.25) 35%,
+            rgba(var(--gradient-3), 0.2) 65%,
+            transparent 70%);
+    filter: blur(40px);
+    z-index: -2;
 }
 
-.main-container {
-    max-width: 430px;
-    margin: 0 auto;
-    padding: 20px;
-    min-height: 100vh;
+.bg-blur {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.8));
+    z-index: -3;
 }
 
-.main-title {
-    font-size: 32px;
+/* Glass kit */
+.glass {
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-brd);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.card.glass {
+    border-radius: 18px;
+}
+
+.btn-ghost {
+    border: 1px solid transparent;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 999px;
+    padding: .45rem .9rem;
+}
+
+.btn-ghost:hover {
+    border-color: rgba(0, 0, 0, 0.06)
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #7c71ff, #2bd2ff);
+    border: none;
+}
+
+.btn-primary:hover {
+    filter: brightness(.95);
+}
+
+.btn-danger-soft {
+    background: rgba(255, 71, 87, .1);
+    color: #c4002e;
+    border: 1px solid rgba(255, 71, 87, .15);
+    border-radius: 999px;
+}
+
+.brand-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #fff;
     font-weight: 700;
-    color: var(--color-primary-text);
+    background: linear-gradient(135deg, #7c71ff, #2bd2ff);
 }
 
-.subtitle {
-    font-size: 22px;
-    font-weight: 400;
-    color: var(--color-secondary-text);
+/* Section titles */
+h1,
+h2,
+h3 {
+    letter-spacing: .2px
 }
 
-/* Barra de búsqueda con efecto "Glass" */
-.search-input {
-    /* Aplicamos el efecto base */
-    composes: glass-effect;
-
-    width: 100%;
-    padding: 14px 15px 14px 45px;
-    border-radius: 16px;
-    color: var(--color-primary-text);
-    /* Texto oscuro */
-    font-size: 15px;
-    font-family: var(--font-family);
-}
-
-.search-input::placeholder {
-    color: rgba(76, 42, 133, 0.5);
-    /* Placeholder morado claro */
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 20px var(--color-accent-glow);
-}
-
-/* Tarjetas de categoría con efecto "Glass" */
-.category-card {
-    /* Aplicamos el efecto base */
-    composes: glass-effect;
-
-    border-radius: 20px;
-    padding: 25px 15px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.category-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 12px 40px 0 rgba(107, 33, 168, 0.25);
-}
-
-.category-card.active {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 25px var(--color-accent-glow);
-}
-
-.category-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    /* Efecto de brillo para el ícono */
-    text-shadow: 0 0 15px var(--color-cyan-glow);
-}
-
-.category-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-primary-text);
-}
-
-/* Tarjetas de hábitos con efecto "Glass" */
-.habit-card {
-    /* Aplicamos el efecto base */
-    composes: glass-effect;
-
-    border-radius: 16px;
-    padding: 16px;
+section .section-title {
     display: flex;
     align-items: center;
-    gap: 15px;
-    cursor: pointer;
+    gap: .6rem;
+    margin-bottom: .75rem;
 }
 
-.habit-card:hover {
-    transform: translateX(5px);
-    box-shadow: 0 8px 32px 0 rgba(107, 33, 168, 0.2);
+.section-kicker {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .12rem;
+    color: var(--muted);
 }
 
-.habit-name {
-    font-weight: 600;
-    color: var(--color-primary-text);
-}
-
-.habit-frequency {
-    color: var(--color-secondary-text);
-}
-
-/* --------------------------------------------
-   3. PÁGINA DE DETALLE
-   -------------------------------------------- */
-.back-button {
+/* Lists inside cards */
+.list-clean .list-group-item {
     background: transparent;
     border: none;
-    color: var(--color-accent);
-    /* Color morado */
-    font-size: 16px;
-    font-weight: 600;
+    border-top: 1px dashed rgba(0, 0, 0, .08);
 }
 
-.back-button:hover {
-    background: rgba(168, 85, 247, 0.1);
+.list-clean .list-group-item:first-child {
+    border-top: none
 }
 
-.habit-detail-icon {
-    font-size: 80px;
-    text-shadow: 0 0 25px var(--color-accent-glow);
-}
-
-.badge-category {
-    background: rgba(168, 85, 247, 0.15);
-    color: var(--color-accent);
-    border: 1px solid var(--color-accent);
-}
-
-.badge-frequency {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--color-secondary-text);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.why-works-box {
-    /* Aplicamos el efecto base */
-    composes: glass-effect;
-
-    border-left: 4px solid var(--color-accent);
+/* Forms */
+.form-control,
+.form-select {
+    background: rgba(255, 255, 255, .85);
+    border: 1px solid rgba(0, 0, 0, .08);
     border-radius: 12px;
-    padding: 18px;
 }
 
-.why-works-box p,
-.habit-detail-description {
-    color: var(--color-primary-text);
+.form-text {
+    color: var(--muted);
 }
 
-/* --------------------------------------------
-   4. BOTONES Y OTROS ELEMENTOS
-   -------------------------------------------- */
-.btn-primary-custom {
-    background: var(--color-accent);
-    color: white;
-    font-weight: 700;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px var(--color-accent-glow);
+/* Toasts (flash) */
+.toast.glass {
+    background: var(--glass-bg);
 }
 
-.btn-primary-custom:hover:not(:disabled) {
+/* Utility */
+.text-gradient {
+    background: linear-gradient(135deg, #5c4dff 0%, #2bd2ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.shadow-hover {
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.shadow-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px var(--color-accent-glow);
-}
-
-/* El resto de los estilos como .header-section, .no-results, etc., 
-   heredarán los colores de texto y fondo nuevos y deberían funcionar bien. */
-.habits-section,
-.categories-section {
-    margin-bottom: 35px;
-}
-
-.header-section {
-    text-align: center;
-    margin-bottom: 30px;
-    padding-top: 20px;
-}
-
-.search-section {
-    margin-bottom: 25px;
-    position: relative;
-}
-
-.search-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-secondary-text);
-    pointer-events: none;
-}
-
-.carousel-indicators [data-bs-target] {
-    background-color: rgba(76, 42, 133, 0.2);
-}
-
-.carousel-indicators .active {
-    background-color: var(--color-accent);
-}
-
-.categories-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    padding: 0 10px;
-}
-
-.habits-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.habit-info {
-    flex: 1;
-}
-
-.no-results {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.no-results p {
-    color: var(--color-secondary-text);
+    box-shadow: 0 16px 40px rgba(30, 60, 120, .15)
 }

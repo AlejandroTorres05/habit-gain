@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} · Explore{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('explore.home') }}" class="btn btn-ghost mb-3">
+    <i class="bi bi-arrow-left"></i> Volver
+</a>
+
+<h1 class="mb-2 text-gradient">{{ category.name }}</h1>
+<p class="section-kicker mb-4">Hábitos activos dentro de esta categoría</p>
+
+<div class="card glass p-3 shadow-hover">
+    {% if habits %}
+    <ul class="list-group list-clean">
+        {% for h in habits %}
+        <li class="list-group-item py-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="fw-semibold">{{ h.name }}</div>
+                    {% if h.short_desc %}
+                    <div class="small text-muted">{{ h.short_desc }}</div>
+                    {% endif %}
+                </div>
+                <span class="badge text-bg-success rounded-pill px-3 py-2">
+                    <i class="bi bi-check2-circle"></i> Activo
+                </span>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="text-muted">Nada por aquí. Añade un hábito a <strong>{{ category.name }}</strong> y vuelve.</div>
+    {% endif %}
+</div>
+
+{% endblock %}

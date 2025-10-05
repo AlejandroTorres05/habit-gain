@@ -1,60 +1,69 @@
 {% extends "base.html" %}
 {% block title %}Explore{% endblock %}
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="mb-0">Explorar</h2>
-        <a href="{{ url_for('profile.edit') }}" class="btn btn-outline-primary rounded-pill">Mi perfil</a>
+
+<h1 class="mb-2 text-gradient">Explorar</h1>
+<p class="section-kicker mb-4">Descubre tus categorías y hábitos activos</p>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <div class="card glass p-3 shadow-hover">
+            <div class="section-title">
+                <i class="bi bi-bookmark-star text-primary fs-4"></i>
+                <h5 class="m-0">Categorías</h5>
+            </div>
+
+            {% if categories %}
+            <ul class="list-group list-clean">
+                {% for c in categories %}
+                <li class="list-group-item py-3">
+                    <a class="d-flex align-items-center justify-content-between text-decoration-none"
+                        href="{{ url_for('explore.category', category_id=c.id) }}">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-pin-angle-fill text-primary"></i>
+                            <strong class="text-body">{{ c.name }}</strong>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted mb-0">No hay categorías todavía.</p>
+            {% endif %}
+        </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-12 col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Categorías</h5>
-                    {% if categories %}
-                    <ul class="list-group list-group-flush">
-                        {% for c in categories %}
-                        <li class="list-group-item d-flex align-items-center">
-                            <span class="me-2">🔖</span>
-                            <strong class="me-2">{{ c.name }}</strong>
-                            <span class="text-muted">{{ c.icon or "" }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p class="text-muted mb-0">No hay categorías todavía.</p>
-                    {% endif %}
-                </div>
+    <div class="col-12 col-lg-6">
+        <div class="card glass p-3 shadow-hover">
+            <div class="section-title">
+                <i class="bi bi-lightning-charge text-primary fs-4"></i>
+                <h5 class="m-0">Hábitos activos</h5>
             </div>
-        </div>
-
-        <div class="col-12 col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Hábitos activos</h5>
-                    {% if habits %}
-                    <ul class="list-group list-group-flush">
-                        {% for h in habits %}
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ h.name }}</strong>
-                                    {% if h.short_desc %}
-                                    <div class="text-muted small">{{ h.short_desc }}</div>
-                                    {% endif %}
-                                </div>
-                                <span class="badge bg-success">Activo</span>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p class="text-muted mb-0">Aún no tienes hábitos activos. Ve a crear alguno, campeón.</p>
-                    {% endif %}
-                </div>
+            {% if habits %}
+            <ul class="list-group list-clean">
+                {% for h in habits %}
+                <li class="list-group-item py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-semibold">{{ h.name }}</div>
+                            {% if h.short_desc %}
+                            <div class="small text-muted">{{ h.short_desc }}</div>
+                            {% endif %}
+                        </div>
+                        <span class="badge text-bg-success rounded-pill px-3 py-2">
+                            <i class="bi bi-check2-circle"></i> Activo
+                        </span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="text-muted">Aún no tienes hábitos activos. Crea el primero y finge que te levantas a las 5 a.m.
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
 {% endblock %}
