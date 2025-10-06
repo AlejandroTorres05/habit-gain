@@ -78,28 +78,6 @@ def create():
     )
 
 
-
-# HU6: Marcar hábito como completado
-@habits_bp.route("/mark/<int:habit_id>", methods=["POST"])
-def mark(habit_id: int):
-
-    user = _user_email()
-    if not user:
-        flash("Debes iniciar sesión primero", "warning")
-        return redirect(url_for("auth.login"))
-    
-    for h in USER_HABITS.get(user, []):
-        if h["id"] == habit_id:
-            h["done"] = True
-            h["completado_hoy"] = True
-            # Incrementar racha
-            h["racha"] = h.get("racha", 0) + 1
-            flash(f'¡Hábito "{h.get("nombre", h.get("name"))}" completado! ', "success")
-            break
-    
-    return redirect(url_for("progress.panel"))
-
-
 # Funciones auxiliares
 def _get_habit_by_id(user, habit_id):
     
