@@ -189,9 +189,11 @@ class Database:
         conn.commit()
 
     def seed_data(self) -> None:
-        """Seed mínimo para categorías."""
+        """Seed mínimo para categorías y usuario demo."""
         conn = self.get_connection()
         cur = conn.cursor()
+        
+        # Seed categorías
         cur.execute("SELECT COUNT(*) AS c FROM categories")
         count = cur.fetchone()["c"]
         if count == 0:
@@ -204,6 +206,18 @@ class Database:
                 ],
             )
             conn.commit()
+        
+        # Seed usuario demo para testing
+        cur.execute("SELECT COUNT(*) AS c FROM users WHERE email=?", ("demo@habit.com",))
+        demo_exists = cur.fetchone()["c"]
+        if demo_exists == 0:
+            pack = _hash_password("123456")
+            cur.execute(
+                "INSERT INTO users (email, name, password_hash, password_salt) VALUES (?, ?, ?, ?)",
+                ("demo@habit.com", "Demo User", pack["hash"], pack["salt"]),
+            )
+            conn.commit()
+        
         conn.close()
 
 

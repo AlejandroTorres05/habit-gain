@@ -1,6 +1,6 @@
-# MVP Flask con Bootstrap
+# HabitGain - MVP Flask con Bootstrap
 
-Aplicación web MVP desarrollada con Flask, Jinja2 y Bootstrap siguiendo metodología de desarrollo incremental con historias de usuario.
+Aplicación web MVP para el seguimiento de hábitos desarrollada con Flask, Jinja2 y Bootstrap siguiendo metodología de desarrollo incremental con historias de usuario.
 
 ## Requisitos Previos
 
@@ -30,7 +30,7 @@ pip --version      # Windows
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/AlejandroTorres05/habit-gain.git
-cd mi-mvp-flask
+cd habit-gain
 
 # 2. Crear un entorno virtual
 python3 -m venv venv
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/AlejandroTorres05/habit-gain.git
-cd mi-mvp-flask
+cd habit-gain
 
 # 2. Crear un entorno virtual
 python3 -m venv venv
@@ -70,7 +70,7 @@ pip3 install -r requirements.txt
 ```powershell
 # 1. Clonar el repositorio
 git clone https://github.com/AlejandroTorres05/habit-gain.git
-cd mi-mvp-flask
+cd habit-gain
 
 # 2. Crear un entorno virtual
 python -m venv venv
@@ -97,7 +97,7 @@ pip install -r requirements.txt
 ```cmd
 # 1. Clonar el repositorio
 git clone https://github.com/AlejandroTorres05/habit-gain.git
-cd mi-mvp-flask
+cd habit-gain
 
 # 2. Crear un entorno virtual
 python -m venv venv
@@ -115,16 +115,31 @@ pip install -r requirements.txt
 ## Estructura del Proyecto
 
 ```
-mi-mvp-flask/
+habit-gain/
 ├── venv/                  # Entorno virtual (no se sube a git)
-├── app.py                 # Archivo principal de la aplicación
+├── run.py                 # Archivo principal de la aplicación
 ├── requirements.txt       # Dependencias del proyecto
+├── habitgain.db          # Base de datos SQLite
 ├── .gitignore            # Archivos ignorados por git
-├── templates/            # Plantillas HTML (Jinja2)
-├── static/               # Archivos estáticos
-│   ├── css/             # Hojas de estilo
-│   ├── js/              # Scripts JavaScript
-│   └── img/             # Imágenes
+└── habitgain/            # Paquete principal de la aplicación
+    ├── __init__.py       # Factory de la aplicación Flask
+    ├── models.py         # Modelos de base de datos
+    ├── static/           # Archivos estáticos
+    │   ├── css/         # Hojas de estilo
+    │   └── js/          # Scripts JavaScript
+    ├── templates/        # Plantillas HTML compartidas
+    └── [blueprints]/     # Módulos: auth, core, explore, habits, etc.
+```
+
+## Inicializar la Base de Datos
+
+```bash
+# Activar entorno virtual (si no está activado)
+source venv/bin/activate  # Linux/macOS
+# .\venv\Scripts\Activate.ps1  # Windows
+
+# Inicializar la base de datos y datos semilla
+python -c "from habitgain.models import Database; db = Database(); db.init_db(); db.seed_data()"
 ```
 
 ## Ejecutar la Aplicación
@@ -136,7 +151,7 @@ mi-mvp-flask/
 source venv/bin/activate
 
 # Ejecutar la aplicación
-python3 app.py
+python run.py
 ```
 
 ### Windows
@@ -146,10 +161,42 @@ python3 app.py
 .\venv\Scripts\Activate.ps1
 
 # Ejecutar la aplicación
-python app.py
+python run.py
 ```
 
-La aplicación estará disponible en: `http://localhost:5000`
+La aplicación estará disponible en: `http://localhost:9001`
+
+### Posibles Problemas
+
+**Si necesitas cambiar el puerto:**
+```bash
+# El proyecto está configurado para usar el puerto 9001
+# Si necesitas usar otro puerto, puedes ejecutar:
+python -c "from habitgain import create_app; app = create_app(); app.run(debug=True, port=5000)"
+# Luego acceder a: http://localhost:5000
+```
+
+## Credenciales de Prueba
+
+### Usuario Demo (Pre-creado)
+- **Email:** `demo@habit.com`
+- **Contraseña:** `123456`
+
+### Crear Nueva Cuenta
+1. Ve a `http://localhost:9001/auth/register`
+2. Completa el formulario de registro
+3. Usa las credenciales creadas para iniciar sesión
+
+## Funcionalidades Disponibles
+
+- ✅ **Autenticación de usuarios** (login/logout)
+- ✅ **Registro de usuarios** con validación
+- ✅ **Exploración de hábitos** por categorías
+- ✅ **Creación de hábitos** personalizados
+- ✅ **Panel de progreso** personal
+- ✅ **Sistema de categorías** (Health, Productivity, Learning)
+- ✅ **Base de datos SQLite** con migraciones automáticas
+- ✅ **Interfaz responsive** con diseño glassmorphism
 
 ## Desactivar el Entorno Virtual
 

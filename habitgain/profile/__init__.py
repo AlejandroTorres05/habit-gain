@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from ..models import User, Database, count_active_habits_from_db
 from ..habits import USER_HABITS  # mantenemos coherencia con el MVP en memoria
-from ..auth import USERS as AUTH_USERS  # login en memoria heredado
+# Ya no usamos login en memoria, todo está en BD
 
 import secrets
 
@@ -62,19 +62,14 @@ def edit():
                 flash(e, "danger")
             return redirect(url_for("profile.edit"))
 
-        # Persistencia
+        # Persistencia en base de datos
         User.update_name(user_email, new_name)
         if new_password:
             User.update_password(user_email, new_password)
-            # Mantener coherencia con el login en memoria del MVP
-            if user_email in AUTH_USERS:
-                AUTH_USERS[user_email]["password"] = new_password
 
-        # Reflejar en sesión e in-memory
+        # Reflejar cambio de nombre en la sesión
         session["user"]["name"] = new_name
         session.modified = True
-        if user_email in AUTH_USERS:
-            AUTH_USERS[user_email]["name"] = new_name
 
         flash("Profile updated successfully!", "success")
         return redirect(url_for("profile.edit"))
