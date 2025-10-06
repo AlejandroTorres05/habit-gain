@@ -1,34 +1,34 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, session, redirect, url_for, abort
 from ..models import Category, Habit
 
 explore_bp = Blueprint("explore", __name__, template_folder="templates")
 
 
+def _require_login():
+    return "user" in session
+
+
 @explore_bp.route("/")
-def explore():
+def home():
+    if not _require_login():
+        return redirect(url_for("auth.login"))
+    email = session["user"]["email"]
     categories = Category.all()
-    habits = Habit.all()
-    return render_template("explore/explore.html",
-                           categories=categories, habits=habits)
+    habits = Habit.list_active_by_owner(email)
+    return render_template("home.html", categories=categories, habits=habits)
 
 
-@explore_bp.route("/habit/<int:habit_id>")
-def habit_detail(habit_id: int):
-    habit = Habit.get(habit_id)
-    if not habit:
-        from flask import render_template
-        return render_template("404.html"), 404
-    return render_template("explore/detail_habit.html", habit=habit)
-
-# APIs
+# Alias para compatibilidad si en algún lugar quedó explore.explore
+explore_bp.add_url_rule("/", endpoint="explore", view_func=home)
 
 
-@explore_bp.route("/api/by-category/<int:category_id>")
-def api_by_category(category_id: int):
-    return jsonify(Habit.by_category(category_id))
-
-
-@explore_bp.route("/api/search")
-def api_search():
-    q = request.args.get("q", "").strip()
-    return jsonify(Habit.all() if not q else Habit.search(q))
+@explore_bp.route("/category/<int:category_id>")
+def category(category_id: int):
+    if not _require_login():
+        return redirect(url_for("auth.login"))
+    email = session["user"]["email"]
+    cat = Category.get_by_id(category_id)
+    if not cat:
+        abort(404)
+    habits = Habit.list_active_by_owner_and_category(email, category_id)
+    return render_template("category.html", category=cat, habits=habits)
