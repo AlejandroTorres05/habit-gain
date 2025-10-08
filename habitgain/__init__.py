@@ -1,4 +1,5 @@
 # habitgain/__init__.py
+
 from flask import Flask, url_for
 from werkzeug.routing import BuildError
 
@@ -26,6 +27,7 @@ def create_app():
     def inject_template_vars():
         # intenta resolver una URL válida para "Panel" entre varios endpoints comunes
         candidates = [
+            "progress.panel",  # <-- Agregado
             "manage.home", "manage.index",
             "panel.home", "panel.index",
             "dashboard.home", "dashboard.index",
