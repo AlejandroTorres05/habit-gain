@@ -10,49 +10,57 @@ def _user_email():
 
 @habits_bp.route("/new", methods=["GET", "POST"])
 def create():
-    """
-    Historia de Usuario: Crear hábitos personalizados
-    CDA1: Permitir ingresar nombre, descripción, frecuencia, hora y duración
-    CDA2: Guardar en estructura y mostrar en lista
-    CDA3: Mostrar mensaje de confirmación
-    """
     user = _user_email()
     if not user:
         return redirect(url_for("auth.login"))
     
     if request.method == "POST":
-        # Capturar todos los campos
+        # Capturar campos
         name = (request.form.get("name") or "").strip()
         description = (request.form.get("description") or "").strip()
         frequency = (request.form.get("frequency") or "").strip()
-        time = (request.form.get("time") or "").strip()  # NUEVO: Hora específica
-        duration = (request.form.get("duration") or "").strip()  # NUEVO: Duración
+        time = (request.form.get("time") or "").strip()
+        duration = (request.form.get("duration") or "").strip()
         stack_after = request.form.get("stack_after") or ""
+        
+        # Manejar frecuencia personalizada
+        if frequency == "Custom":
+            custom_freq = (request.form.get("custom_frequency") or "").strip()
+            if custom_freq:
+                frequency = custom_freq
+            selected_days = request.form.get("selected_days") or ""
+            if selected_days:
+                frequency = f"Días específicos: {selected_days}"
+        
+        # Manejar duración personalizada
+        if duration == "Custom":
+            custom_duration = (request.form.get("custom_duration") or "").strip()
+            if custom_duration:
+                duration = custom_duration
         
         # Validación
         if not name:
-            flash("Habit name is required", "warning")
+            flash("El nombre del hábito es requerido", "warning")
             return render_template("habits/new.html")
         
         if not frequency:
-            flash("Frequency is required", "warning")
+            flash("La frecuencia es requerida", "warning")
             return render_template("habits/new.html")
         
-        # CDA2: Guardar el hábito con todos los campos
+        # Guardar el hábito
         USER_HABITS.setdefault(user, [])
         USER_HABITS[user].append({
             "id": len(USER_HABITS[user]) + 1000,
             "name": name,
             "description": description,
             "frequency": frequency,
-            "time": time,              # NUEVO
-            "duration": duration,      # NUEVO
+            "time": time,
+            "duration": duration,
             "done": False,
             "stack_after": stack_after
         })
         
-        # CDA3: Mensaje de confirmación
-        flash(f"✨ Habit '{name}' created successfully!", "success")
+        flash(f"¡Hábito '{name}' creado exitosamente!", "success")
         return redirect(url_for("progress.panel"))
     
     return render_template("habits/new.html")

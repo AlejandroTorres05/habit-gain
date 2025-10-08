@@ -47,41 +47,37 @@
                     <div class="mb-3 flex-grow-1">
                         <!-- Frecuencia -->
                         {% if h.frequency %}
-                        <div class="d-flex align-items-center mb-2">
-                            <svg width="16" height="16" fill="currentColor" class="text-primary me-2">
-                                <use href="#calendar-icon"/>
-                            </svg>
-                            <small class="text-muted"><strong>Frecuencia:</strong> {{ h.frequency }}</small>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Frecuencia:</strong> {{ h.frequency }}
+                            </small>
                         </div>
                         {% endif %}
                         
                         <!-- Hora -->
                         {% if h.time %}
-                        <div class="d-flex align-items-center mb-2">
-                            <svg width="16" height="16" fill="currentColor" class="text-primary me-2">
-                                <use href="#clock-icon"/>
-                            </svg>
-                            <small class="text-muted"><strong>Hora:</strong> {{ h.time }}</small>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Hora:</strong> {{ h.time }}
+                            </small>
                         </div>
                         {% endif %}
                         
                         <!-- Duración -->
                         {% if h.duration %}
-                        <div class="d-flex align-items-center mb-2">
-                            <svg width="16" height="16" fill="currentColor" class="text-primary me-2">
-                                <use href="#timer-icon"/>
-                            </svg>
-                            <small class="text-muted"><strong>Duración:</strong> {{ h.duration }}</small>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Duración:</strong> {{ h.duration }}
+                            </small>
                         </div>
                         {% endif %}
                         
                         <!-- Stack After -->
                         {% if h.stack_after %}
-                        <div class="d-flex align-items-center mb-2">
-                            <svg width="16" height="16" fill="currentColor" class="text-primary me-2">
-                                <use href="#link-icon"/>
-                            </svg>
-                            <small class="text-muted"><strong>Después de:</strong> {{ h.stack_after }}</small>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Después de:</strong> {{ h.stack_after }}
+                            </small>
                         </div>
                         {% endif %}
                     </div>
@@ -107,9 +103,7 @@
     <!-- Estado vacío -->
     <div class="card glass text-center py-5">
         <div class="card-body">
-            <svg width="80" height="80" fill="currentColor" class="text-muted mb-3">
-                <use href="#habits-empty-icon"/>
-            </svg>
+            <div class="mb-3" style="font-size: 4rem; opacity: 0.3;">📋</div>
             <h3 class="text-muted mb-3">No tienes hábitos aún</h3>
             <p class="text-muted mb-4">
                 Comienza tu viaje hacia mejores hábitos creando tu primer hábito.
@@ -121,26 +115,4 @@
     </div>
     {% endif %}
 </div>
-
-<!-- SVG Icons (agregar al final antes de {% endblock %}) -->
-<svg style="display: none;">
-    <symbol id="calendar-icon" viewBox="0 0 16 16">
-        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-    </symbol>
-    <symbol id="clock-icon" viewBox="0 0 16 16">
-        <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
-        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
-    </symbol>
-    <symbol id="timer-icon" viewBox="0 0 16 16">
-        <path d="M10 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 .5-.5zM4.5 4a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1h-7zM8 13a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zm0 1A6.5 6.5 0 1 1 8 1a6.5 6.5 0 0 1 0 13z"/>
-        <path d="M8.5 7.5V5.5a.5.5 0 0 0-1 0v2.5h-1a.5.5 0 0 0 0 1h1.5a.5.5 0 0 0 .5-.5z"/>
-    </symbol>
-    <symbol id="link-icon" viewBox="0 0 16 16">
-        <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
-        <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
-    </symbol>
-    <symbol id="habits-empty-icon" viewBox="0 0 16 16">
-        <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
-    </symbol>
-</svg>
 {% endblock %}
