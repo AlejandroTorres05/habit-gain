@@ -1,33 +1,94 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center">
-    <h2 class="text-light">My Panel</h2>
-    <a class="btn btn-outline-light rounded-pill" href="{{ url_for('habits.create') }}">+ New habit</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Panel de Hábitos</h2>
+    <p class="text-muted mb-0">Progreso de hoy: <strong>{{ completed }}</strong> de <strong>{{ total }}</strong> completados</p>
   </div>
-  <p class="text-secondary">Today: <strong>{{ completed }}</strong> of <strong>{{ total }}</strong></p>
+  <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}">
+    <i class="bi bi-plus-circle"></i> Nuevo Hábito
+  </a>
+</div>
 
-  <div class="row">
-    {% for h in habits %}
-    <div class="col-md-4 mb-3">
-      <div class="card bg-dark text-light rounded-4 p-3 h-100">
-        <div class="fw-semibold">{{ h.name }}</div>
-        {% if h.stack_after %}<div class="small text-info">After: {{ h.stack_after }}</div>{% endif %}
+{% if completed > 0 and total > 0 %}
+<div class="card glass mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-medium">Progreso de Hoy</span>
+      <span class="text-muted">{{ ((completed / total) * 100) | round | int }}%</span>
+    </div>
+    <div class="progress" style="height: 8px;">
+      <div class="progress-bar" role="progressbar" style="width: {{ ((completed / total) * 100) | round }}%"></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if habits %}
+<div class="row">
+  {% for h in habits %}
+  <div class="col-md-6 col-lg-4 mb-3">
+    <div class="card glass h-100 shadow-hover">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="card-title mb-0 fw-medium">{{ h.name or h.nombre }}</h6>
+          {% if h.done or h.completado_hoy %}
+          <span class="badge bg-success rounded-pill">
+            <i class="bi bi-check-circle"></i> Completado
+          </span>
+          {% endif %}
+        </div>
+        
+        {% if h.descripcion %}
+        <p class="card-text text-muted small mb-2">{{ h.descripcion }}</p>
+        {% endif %}
+        
+        {% if h.categoria %}
+        <div class="mb-2">
+          <span class="badge bg-light text-dark rounded-pill small">{{ h.categoria }}</span>
+        </div>
+        {% endif %}
+        
+        {% if h.stack_after or h.habit_base_id %}
+        <div class="small text-primary mb-3">
+          <i class="bi bi-link-45deg"></i> Vinculado a otro hábito
+        </div>
+        {% endif %}
+        
         <div class="mt-auto">
-          {% if h.done %}
-          <span class="badge text-bg-success rounded-pill">Completed</span>
-          {% else %}
-          <form method="post" action="{{ url_for('habits_mark', habit_id=h.id) }}">
-            <button formaction="{{ url_for('habits_mark', habit_id=h.id) }}"
-              class="btn btn-primary btn-sm rounded-pill">Done</button>
-          </form>
+          {% if not (h.done or h.completado_hoy) %}
+          <div class="d-grid">
+            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted({{ h.id }})">
+              <i class="bi bi-check-circle"></i> Marcar como Completado
+            </button>
+          </div>
           {% endif %}
         </div>
       </div>
     </div>
-    {% else %}
-    <p class="text-secondary">No habits yet. Create one.</p>
-    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+  <div class="card glass">
+    <div class="card-body py-5">
+      <i class="bi bi-plus-circle display-4 text-muted mb-3"></i>
+      <h5 class="text-muted">No tienes hábitos aún</h5>
+      <p class="text-muted mb-4">Crea tu primer hábito para comenzar tu jornada de mejora personal</p>
+      <a href="{{ url_for('habits.create') }}" class="btn btn-primary rounded-pill">
+        <i class="bi bi-plus-circle"></i> Crear Primer Hábito
+      </a>
+    </div>
   </div>
 </div>
+{% endif %}
+
+<script>
+function markCompleted(habitId) {
+  // Por ahora solo mostrar un mensaje
+  alert('Funcionalidad de marcar como completado en desarrollo');
+  // TODO: Implementar endpoint para marcar hábitos como completados
+}
+</script>
 {% endblock %}
