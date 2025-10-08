@@ -1,17 +1,169 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="container py-4" style="max-width:580px">
-  <h2 class="text-light">Create habit</h2>
-  <form method="post" class="card p-4 bg-dark-subtle border-0 rounded-4">
-    <div class="mb-3">
-      <label class="form-label">Name</label>
-      <input class="form-control" name="name" placeholder="Read 10 minutes" required>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <!-- Card principal del formulario -->
+            <div class="card glass shadow-hover">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="mb-4">
+                        <h2 class="text-gradient mb-2">Añadir un nuevo Hábito</h2>
+                        <p class="text-muted">Personaliza tu hábito con los siguientes detalles</p>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('habits.create') }}">
+                        
+                        <!-- Campo Nombre (Requerido) -->
+                        <div class="mb-4">
+                            <label for="name" class="form-label fw-semibold text-dark">
+                                Nombre del Hábito <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control form-control-lg" 
+                                id="name" 
+                                name="name" 
+                                placeholder="Ej: Meditación Diaria"
+                                required
+                                maxlength="100"
+                            >
+                        </div>
+
+                        <!-- Campo Descripción (Opcional) -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold text-dark">
+                                Descripción
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="description" 
+                                name="description" 
+                                rows="4"
+                                placeholder="Describe tu hábito, tu motivación o cualquier detalle importante..."
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                ¿Por qué es importante este hábito para ti?
+                            </small>
+                        </div>
+
+                        <!-- Frecuencia -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark d-block mb-3">
+                                Frecuencia <span class="text-danger">*</span>
+                            </label>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="frequency" id="freq_daily" value="Daily" required>
+                                    <label class="btn btn-outline-primary w-100" for="freq_daily">
+                                        Diario
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="frequency" id="freq_3x" value="3x per week">
+                                    <label class="btn btn-outline-primary w-100" for="freq_3x">
+                                        3x Semana
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="frequency" id="freq_5x" value="5x per week">
+                                    <label class="btn btn-outline-primary w-100" for="freq_5x">
+                                        5x Semana
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="frequency" id="freq_weekly" value="Weekly">
+                                    <label class="btn btn-outline-primary w-100" for="freq_weekly">
+                                        Semanal
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="frequency" id="freq_weekend" value="Weekends">
+                                    <label class="btn btn-outline-primary w-100" for="freq_weekend">
+                                        Fin de Semana
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="frequency" id="freq_custom" value="Custom">
+                                    <label class="btn btn-outline-primary w-100" for="freq_custom">
+                                        Personalizado
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hora y Duración en dos columnas -->
+                        <div class="row mb-4">
+                            <!-- Hora Específica -->
+                            <div class="col-md-6">
+                                <label for="time" class="form-label fw-semibold text-dark">
+                                    Hora Preferida
+                                </label>
+                                <input 
+                                    type="time" 
+                                    class="form-control form-control-lg" 
+                                    id="time" 
+                                    name="time"
+                                >
+                                <small class="form-text text-muted">
+                                    Establece un horario específico
+                                </small>
+                            </div>
+
+                            <!-- Duración -->
+                            <div class="col-md-6">
+                                <label for="duration" class="form-label fw-semibold text-dark">
+                                    Duración
+                                </label>
+                                <select class="form-select form-select-lg" id="duration" name="duration">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="5 minutes">5 minutos</option>
+                                    <option value="10 minutes">10 minutos</option>
+                                    <option value="15 minutes">15 minutos</option>
+                                    <option value="20 minutes">20 minutos</option>
+                                    <option value="30 minutes">30 minutos</option>
+                                    <option value="45 minutes">45 minutos</option>
+                                    <option value="1 hour">1 hora</option>
+                                    <option value="1.5 hours">1.5 horas</option>
+                                    <option value="2 hours">2 horas</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    ¿Cuánto tiempo necesitas?
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Intención de Implementación (Habit Stacking) -->
+                        <div class="mb-4">
+                            <label for="stack_after" class="form-label fw-semibold text-dark">
+                                Intención de Implementación
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control form-control-lg" 
+                                id="stack_after" 
+                                name="stack_after" 
+                                placeholder="Ej: Después de cepillarme los dientes"
+                            >
+                            <small class="form-text text-muted">
+                                Vincula este hábito a una rutina existente
+                            </small>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Guardar Hábito
+                            </button>
+                            <a href="{{ url_for('progress.panel') }}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Habit stacking (optional) — after:</label>
-      <input class="form-control" name="stack_after" placeholder="Morning coffee">
-    </div>
-    <button class="btn btn-primary rounded-pill">Save</button>
-  </form>
 </div>
 {% endblock %}
