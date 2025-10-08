@@ -13,8 +13,12 @@ class Database:
         self.db_name = db_name
 
     def get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_name)
+        conn = sqlite3.connect(self.db_name, timeout=20.0, check_same_thread=False)
         conn.row_factory = sqlite3.Row
+        # Habilitar WAL mode para mejor concurrencia
+        conn.execute("PRAGMA journal_mode=WAL")
+        # Reducir el tiempo de espera para locks
+        conn.execute("PRAGMA busy_timeout=20000")
         return conn
 
     # ---------------------------
@@ -401,34 +405,42 @@ class Habit:
     def create(email: str, name: str, short_desc: Optional[str] = None, category_id: Optional[int] = None) -> int:
         db = Database()
         conn = db.get_connection()
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO habits (owner_email, name, active, short_desc, category_id) VALUES (?, ?, 1, ?, ?)",
-            (email, name, short_desc, category_id),
-        )
-        conn.commit()
-        new_id = cur.lastrowid
-        conn.close()
-        return int(new_id)
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """INSERT INTO habits
+                (owner_email, name, active, short_desc, category_id, frequency, long_desc, why_works, icon)
+                VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?)""",
+                (email, name, short_desc or "", category_id or 1, "daily", "", "", "🎯"),
+            )
+            conn.commit()
+            new_id = cur.lastrowid
+            return int(new_id)
+        finally:
+            conn.close()
 
     @staticmethod
     def set_active(habit_id: int, active: bool) -> None:
         db = Database()
         conn = db.get_connection()
-        cur = conn.cursor()
-        cur.execute("UPDATE habits SET active=? WHERE id=?",
-                    (1 if active else 0, habit_id))
-        conn.commit()
-        conn.close()
+        try:
+            cur = conn.cursor()
+            cur.execute("UPDATE habits SET active=? WHERE id=?",
+                        (1 if active else 0, habit_id))
+            conn.commit()
+        finally:
+            conn.close()
 
     @staticmethod
     def delete(habit_id: int) -> None:
         db = Database()
         conn = db.get_connection()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM habits WHERE id=?", (habit_id,))
-        conn.commit()
-        conn.close()
+        try:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM habits WHERE id=?", (habit_id,))
+            conn.commit()
+        finally:
+            conn.close()
 
     @staticmethod
     def list_active_by_owner_and_category(email: str, category_id: int):

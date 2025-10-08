@@ -66,4 +66,130 @@
     </div>
 </div>
 
+<!-- Catálogo de Hábitos Sugeridos -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card glass p-4 shadow-hover">
+            <div class="section-title mb-3">
+                <i class="bi bi-lightbulb text-warning fs-4"></i>
+                <h5 class="m-0">Catálogo de Hábitos Sugeridos</h5>
+            </div>
+            <p class="text-muted mb-3">Explora hábitos populares y agrégalos a tu panel con un solo clic</p>
+
+            <!-- Barra de búsqueda -->
+            <div class="mb-4">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           class="form-control form-control-lg border-start-0 ps-0"
+                           id="habitSearchInput"
+                           placeholder="Buscar hábitos por nombre o descripción..."
+                           autocomplete="off">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearch" style="display: none;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted" id="searchResults"></small>
+                </div>
+            </div>
+
+            {% if suggested_habits %}
+            <div class="row g-3" id="habitsContainer">
+                {% for habit in suggested_habits %}
+                <div class="col-12 col-md-6 col-lg-4 habit-card"
+                     data-habit-name="{{ habit.name|lower }}"
+                     data-habit-desc="{{ habit.short_desc|lower }}">
+                    <div class="card h-100 border">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title fw-bold mb-2">{{ habit.name }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">{{ habit.short_desc }}</p>
+                            <form method="POST" action="{{ url_for('explore.add_habit', habit_id=habit.id) }}" class="mt-2">
+                                <button type="submit" class="btn btn-sm btn-primary w-100">
+                                    <i class="bi bi-plus-circle"></i> Agregar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="noResultsMessage" class="text-center text-muted py-4" style="display: none;">
+                <i class="bi bi-search fs-1 mb-2"></i>
+                <p class="mb-0">No se encontraron hábitos que coincidan con tu búsqueda</p>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No hay hábitos sugeridos disponibles.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('habitSearchInput');
+    const clearButton = document.getElementById('clearSearch');
+    const searchResults = document.getElementById('searchResults');
+    const habitsContainer = document.getElementById('habitsContainer');
+    const noResultsMessage = document.getElementById('noResultsMessage');
+    const habitCards = document.querySelectorAll('.habit-card');
+
+    if (!searchInput) return;
+
+    function filterHabits() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        habitCards.forEach(card => {
+            const habitName = card.getAttribute('data-habit-name');
+            const habitDesc = card.getAttribute('data-habit-desc');
+            const matches = habitName.includes(searchTerm) || habitDesc.includes(searchTerm);
+
+            if (matches) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Mostrar/ocultar mensaje de "sin resultados"
+        if (visibleCount === 0 && searchTerm !== '') {
+            habitsContainer.style.display = 'none';
+            noResultsMessage.style.display = 'block';
+        } else {
+            habitsContainer.style.display = '';
+            noResultsMessage.style.display = 'none';
+        }
+
+        // Actualizar contador
+        if (searchTerm === '') {
+            searchResults.textContent = '';
+            clearButton.style.display = 'none';
+        } else {
+            searchResults.textContent = `${visibleCount} hábito(s) encontrado(s)`;
+            clearButton.style.display = 'block';
+        }
+    }
+
+    searchInput.addEventListener('input', filterHabits);
+
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        filterHabits();
+        searchInput.focus();
+    });
+
+    // Limpiar búsqueda con Escape
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            filterHabits();
+        }
+    });
+});
+</script>
+
 {% endblock %}
