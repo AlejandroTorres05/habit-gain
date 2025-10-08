@@ -140,3 +140,34 @@ def get_progress_stats(user):
         "completados": completados_hoy,
         "porcentaje": int((completados_hoy / total_habitos * 100) if total_habitos > 0 else 0)
     }
+
+
+#H11:
+@habits_bp.route("/<int:habit_id>/delete", methods=["GET", "POST"])
+def delete(habit_id):
+    """
+    Vista dedicada para confirmar y eliminar un hábito (HU-11).
+    GET: mostrar página de confirmación.
+    POST: eliminar y redirigir al panel con mensaje flash.
+    """
+    user = _user_email()
+    if not user:
+        flash("Debes iniciar sesión primero", "warning")
+        return redirect(url_for("auth.login"))
+
+    habits = USER_HABITS.get(user, [])
+    habit = next((h for h in habits if h.get("id") == habit_id), None)
+    if not habit:
+        flash("No se encontró el hábito solicitado.", "danger")
+        return redirect(url_for("progress.panel"))
+
+    if request.method == "POST":
+        # eliminar y notificar
+        try:
+            habits.remove(habit)
+            flash(f'Hábito \"{habit.get("nombre") or habit.get("name")}\" eliminado correctamente.', "success")
+        except ValueError:
+            flash("Ocurrió un error al eliminar el hábito.", "danger")
+        return redirect(url_for("progress.panel"))
+
+    return render_template("habits/delete.html", habit=habit)
