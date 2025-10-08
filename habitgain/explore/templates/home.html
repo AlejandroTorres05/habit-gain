@@ -45,15 +45,23 @@
                 {% for h in habits %}
                 <li class="list-group-item py-3">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div>
+                        <div class="flex-grow-1">
                             <div class="fw-semibold">{{ h.name }}</div>
                             {% if h.short_desc %}
                             <div class="small text-muted">{{ h.short_desc }}</div>
                             {% endif %}
                         </div>
-                        <span class="badge text-bg-success rounded-pill px-3 py-2">
-                            <i class="bi bi-check2-circle"></i> Activo
-                        </span>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="badge text-bg-success rounded-pill px-3 py-2">
+                                <i class="bi bi-check2-circle"></i> Activo
+                            </span>
+                            <form method="POST" action="{{ url_for('explore.remove_habit', habit_id=h.id) }}" class="d-inline"
+                                  onsubmit="return confirm('¿Estás seguro de que quieres eliminar este hábito?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar hábito">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </li>
                 {% endfor %}
@@ -102,11 +110,16 @@
                 <div class="col-12 col-md-6 col-lg-4 habit-card"
                      data-habit-name="{{ habit.name|lower }}"
                      data-habit-desc="{{ habit.short_desc|lower }}">
-                    <div class="card h-100 border">
-                        <div class="card-body d-flex flex-column">
-                            <h6 class="card-title fw-bold mb-2">{{ habit.name }}</h6>
+                    <div class="card h-100 border hover-shadow" style="cursor: pointer; transition: transform 0.2s;">
+                        <div class="card-body d-flex flex-column" onclick="showHabitDetails('{{ habit.id }}')">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="fs-3 me-2">{{ habit.icon }}</span>
+                                <h6 class="card-title fw-bold mb-0 flex-grow-1">{{ habit.name }}</h6>
+                            </div>
                             <p class="card-text text-muted small flex-grow-1">{{ habit.short_desc }}</p>
-                            <form method="POST" action="{{ url_for('explore.add_habit', habit_id=habit.id) }}" class="mt-2">
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0 pt-0">
+                            <form method="POST" action="{{ url_for('explore.add_habit', habit_id=habit.id) }}" onclick="event.stopPropagation();">
                                 <button type="submit" class="btn btn-sm btn-primary w-100">
                                     <i class="bi bi-plus-circle"></i> Agregar
                                 </button>
@@ -126,6 +139,128 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Detalles del Hábito -->
+<div class="modal fade" id="habitDetailsModal" tabindex="-1" aria-labelledby="habitDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Header con degradado -->
+            <div class="modal-header border-0 bg-gradient p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="d-flex align-items-center w-100">
+                    <span id="modalIcon" class="fs-1 me-3" style="filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));"></span>
+                    <div class="flex-grow-1">
+                        <h4 class="modal-title text-white fw-bold mb-0" id="modalTitle"></h4>
+                        <p class="text-white-50 small mb-0 mt-1" id="modalShortDesc"></p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body con secciones bien definidas -->
+            <div class="modal-body p-4">
+                <!-- Nombre del Hábito (título secundario) -->
+                <div class="mb-4 pb-3 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-bookmark-star-fill text-primary fs-4 me-2"></i>
+                        <h5 class="mb-0 text-primary fw-bold" id="modalNameHeader"></h5>
+                    </div>
+                </div>
+
+                <!-- Descripción completa y beneficios -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-journal-text text-success fs-5 me-2"></i>
+                        <h6 class="text-uppercase small fw-bold mb-0 text-muted">Descripción y Beneficios</h6>
+                    </div>
+                    <div class="ps-4">
+                        <p id="modalLongDesc" class="mb-0 text-body lh-lg"></p>
+                    </div>
+                </div>
+
+                <!-- Por qué funciona (base científica/psicológica) -->
+                <div class="mb-4 p-3 rounded" style="background-color: #f8f9fa;">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-lightbulb-fill text-warning fs-5 me-2"></i>
+                        <h6 class="text-uppercase small fw-bold mb-0 text-muted">¿Por qué funciona?</h6>
+                    </div>
+                    <div class="ps-4">
+                        <p id="modalWhyWorks" class="mb-0 text-body lh-lg fst-italic"></p>
+                    </div>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="alert alert-info border-0 mb-0" role="alert">
+                    <div class="d-flex">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <small class="mb-0">
+                            Al agregar este hábito a tu plan, podrás personalizarlo y hacer seguimiento de tu progreso diario.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer con botones destacados -->
+            <div class="modal-footer border-0 bg-light p-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </button>
+                <form method="POST" id="modalAddForm" class="d-inline">
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                        <i class="bi bi-plus-circle-fill"></i> Añadir a mi Plan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Datos de hábitos para el modal
+const habitData = {
+    {% for habit in suggested_habits %}
+    '{{ habit.id }}': {
+        name: '{{ habit.name }}',
+        icon: '{{ habit.icon }}',
+        short_desc: '{{ habit.short_desc }}',
+        long_desc: '{{ habit.long_desc }}',
+        why_works: '{{ habit.why_works }}',
+        addUrl: '{{ url_for("explore.add_habit", habit_id=habit.id) }}'
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+function showHabitDetails(habitId) {
+    const habit = habitData[habitId];
+    if (!habit) return;
+
+    // Llenar todos los campos del modal
+    document.getElementById('modalIcon').textContent = habit.icon;
+    document.getElementById('modalTitle').textContent = habit.name;
+    document.getElementById('modalShortDesc').textContent = habit.short_desc;
+    document.getElementById('modalNameHeader').textContent = habit.name;
+    document.getElementById('modalLongDesc').textContent = habit.long_desc;
+    document.getElementById('modalWhyWorks').textContent = habit.why_works;
+    document.getElementById('modalAddForm').action = habit.addUrl;
+
+    const modal = new bootstrap.Modal(document.getElementById('habitDetailsModal'));
+    modal.show();
+}
+
+// Agregar efecto hover a las tarjetas
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.hover-shadow');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+        });
+    });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
