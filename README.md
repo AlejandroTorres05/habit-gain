@@ -2,6 +2,10 @@
 
 Aplicación web MVP desarrollada con Flask, Jinja2 y Bootstrap siguiendo metodología de desarrollo incremental con historias de usuario.
 
+### Test unitarios
+``` pytest -v ```
+
+
 ## Requisitos Previos
 
 ### Todos los Sistemas Operativos
