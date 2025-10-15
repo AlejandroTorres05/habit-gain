@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card glass p-4 shadow-sm">
+        <h3 class="mb-3">Eliminar hábito</h3>
+        <p class="text-muted mb-2">Vas a eliminar el hábito <strong>{{ habit.nombre or habit.name }}</strong>. Esta acción no se puede deshacer.</p>
+        {% if habit.descripcion %}
+        <p class="small text-secondary">{{ habit.descripcion }}</p>
+        {% endif %}
+        <form method="post" class="mt-4 d-flex gap-2">
+          <button type="submit" class="btn btn-danger rounded-pill">
+            <i class="bi bi-trash"></i> Confirmar eliminación
+          </button>
+          <a href="{{ url_for('progress.panel') }}" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
