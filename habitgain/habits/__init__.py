@@ -8,10 +8,14 @@ USER_HABITS = {}
 def _user_email():
     return (session.get("user") or {}).get("email")
 
+
+
+# HU5: Crear nuevo hábito con Habit Stacking
 @habits_bp.route("/new", methods=["GET", "POST"])
 def create():
     user = _user_email()
     if not user:
+        flash("Debes iniciar sesión primero", "warning")
         return redirect(url_for("auth.login"))
     
     if request.method == "POST":
@@ -69,9 +73,22 @@ def create():
 def mark(habit_id: int):
     user = _user_email()
     if not user:
+        flash("Debes iniciar sesión primero", "warning")
         return redirect(url_for("auth.login"))
-    for h in USER_HABITS.get(user, []):
-        if h["id"] == habit_id:
-            h["done"] = True
-            break
-    return redirect(url_for("progress.panel"))
+
+    habits = USER_HABITS.get(user, [])
+    habit = next((h for h in habits if h.get("id") == habit_id), None)
+    if not habit:
+        flash("No se encontró el hábito solicitado.", "danger")
+        return redirect(url_for("progress.panel"))
+
+    if request.method == "POST":
+        # eliminar y notificar
+        try:
+            habits.remove(habit)
+            flash(f'Hábito \"{habit.get("nombre") or habit.get("name")}\" eliminado correctamente.', "success")
+        except ValueError:
+            flash("Ocurrió un error al eliminar el hábito.", "danger")
+        return redirect(url_for("progress.panel"))
+
+    return render_template("habits/delete.html", habit=habit)
