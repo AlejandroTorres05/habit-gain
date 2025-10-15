@@ -3,7 +3,6 @@ from ..habits import USER_HABITS
 
 progress_bp = Blueprint("progress", __name__, template_folder="templates")
 
-
 @progress_bp.route("/panel")
 def panel():
     user = (session.get("user") or {}).get("email")
