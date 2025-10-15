@@ -66,7 +66,7 @@
         <div class="mt-auto">
           {% if not (h.done or h.completado_hoy) %}
           <div class="d-grid">
-            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted({{ h.id }})">
+            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ h.id }}')">
               <i class="bi bi-check-circle"></i> Marcar como Completado
             </button>
           </div>
