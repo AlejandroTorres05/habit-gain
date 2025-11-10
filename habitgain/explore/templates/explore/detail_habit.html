@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ habit.name }} — HabitGain{% endblock %}
+{% block content %}
+<div class="main-container detail-container">
+    <div class="back-button-wrapper">
+        <button onclick="window.history.back()" class="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6" />
+            </svg>
+            Back
+        </button>
+    </div>
+
+    <div class="habit-detail">
+        <div class="habit-detail-icon">{{ habit.icon }}</div>
+        <h1 class="habit-detail-title">{{ habit.name }}</h1>
+        <div class="habit-detail-badge">
+            <span class="badge-category">{{ habit.category_name }}</span>
+            <span class="badge-frequency">{{ habit.frequency }}</span>
+        </div>
+
+        <div class="habit-detail-section">
+            <p class="habit-detail-description">{{ habit.long_desc }}</p>
+        </div>
+
+        <div class="habit-detail-section">
+            <h3 class="section-subtitle">Why it works</h3>
+            <div class="why-works-box">
+                <p>{{ habit.why_works }}</p>
+            </div>
+        </div>
+
+        <div class="action-button-wrapper">
+            <a href="{{ url_for('habits.create') }}" class="btn-primary-custom btn-add-plan">Add to my plan</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

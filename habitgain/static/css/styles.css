@@ -1,0 +1,170 @@
+/* ===== Theme tokens ===== */
+:root {
+    --bg: #eef2ff;
+    --ink: #0f1222;
+    --muted: #5b5e72;
+
+    --primary: #6b5bff;
+    /* purple */
+    --accent: #2bd2ff;
+    /* cyan */
+    --gradient-1: 217, 70, 239;
+    /* fuchsia-ish */
+    --gradient-2: 79, 70, 229;
+    /* indigo */
+    --gradient-3: 45, 212, 191;
+    /* teal */
+
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-brd: rgba(255, 255, 255, 0.35);
+    --shadow: 0 10px 30px rgba(40, 70, 120, 0.15);
+}
+
+html,
+body {
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100%;
+}
+
+/* Neon-ish background */
+.bg-gradient {
+    position: fixed;
+    inset: -20vmax auto auto -10vmax;
+    width: 60vmax;
+    height: 60vmax;
+    background: radial-gradient(circle at 30% 30%,
+            rgba(var(--gradient-1), 0.35) 0%,
+            rgba(var(--gradient-2), 0.25) 35%,
+            rgba(var(--gradient-3), 0.2) 65%,
+            transparent 70%);
+    filter: blur(40px);
+    z-index: -2;
+}
+
+.bg-blur {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.8));
+    z-index: -3;
+}
+
+/* Glass kit */
+.glass {
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-brd);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.card.glass {
+    border-radius: 18px;
+}
+
+.btn-ghost {
+    border: 1px solid transparent;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 999px;
+    padding: .45rem .9rem;
+}
+
+.btn-ghost:hover {
+    border-color: rgba(0, 0, 0, 0.06)
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #7c71ff, #2bd2ff);
+    border: none;
+}
+
+.btn-primary:hover {
+    filter: brightness(.95);
+}
+
+.btn-danger-soft {
+    background: rgba(255, 71, 87, .1);
+    color: #c4002e;
+    border: 1px solid rgba(255, 71, 87, .15);
+    border-radius: 999px;
+}
+
+.brand-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c71ff, #2bd2ff);
+}
+
+/* Section titles */
+h1,
+h2,
+h3 {
+    letter-spacing: .2px
+}
+
+section .section-title {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .75rem;
+}
+
+.section-kicker {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .12rem;
+    color: var(--muted);
+}
+
+/* Lists inside cards */
+.list-clean .list-group-item {
+    background: transparent;
+    border: none;
+    border-top: 1px dashed rgba(0, 0, 0, .08);
+}
+
+.list-clean .list-group-item:first-child {
+    border-top: none
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    background: rgba(255, 255, 255, .85);
+    border: 1px solid rgba(0, 0, 0, .08);
+    border-radius: 12px;
+}
+
+.form-text {
+    color: var(--muted);
+}
+
+/* Toasts (flash) */
+.toast.glass {
+    background: var(--glass-bg);
+}
+
+/* Utility */
+.text-gradient {
+    background: linear-gradient(135deg, #5c4dff 0%, #2bd2ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.shadow-hover {
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.shadow-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(30, 60, 120, .15)
+}
