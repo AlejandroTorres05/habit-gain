@@ -39,15 +39,34 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="btn btn-ghost" href="{{ url_for('explore.my_habits') }}">
+                        <i class="bi bi-list-check"></i> My habits
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="btn btn-ghost" href="{{ url_for('profile.edit') }}">
                         <i class="bi bi-person-circle"></i> My Profile
                     </a>
                 </li>
-                    <li class="nav-item">
+
+                {% if 'user' not in session %}
+                <li class="nav-item">
                     <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">
-                        <i class="bi bi-person-circle"></i> Register
+                        <i class="bi bi-person-plus"></i> Register
                     </a>
                 </li>
+                <li class="nav-item">
+                    {% if has_auth %}
+                    <a class="btn btn-danger-soft" href="{{ url_for('auth.login') }}">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign in
+                    </a>
+                    {% else %}
+                    <span class="btn btn-danger-soft disabled">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign in
+                    </span>
+                    {% endif %}
+                </li>
+                {% else %}
                 <li class="nav-item">
                     {% if has_auth %}
                     <a class="btn btn-danger-soft" href="{{ url_for('auth.logout') }}">
@@ -59,6 +78,7 @@
                     </span>
                     {% endif %}
                 </li>
+                {% endif %}
             </ul>
         </div>
     </nav>
@@ -81,7 +101,6 @@
         {% endif %}
         {% endwith %}
     </div>
-
 
     <main class="container py-4">{% block content %}{% endblock %}</main>
 

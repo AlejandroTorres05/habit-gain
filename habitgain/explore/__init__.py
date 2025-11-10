@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, abort, flash, request
+from jinja2 import TemplateNotFound
 from ..models import Category, Habit
 
 explore_bp = Blueprint("explore", __name__, template_folder="templates")
@@ -98,15 +99,17 @@ def home():
     categories = Category.all()
     user_habits = Habit.list_active_by_owner(email)
 
-    # Obtener todos los hábitos sugeridos
+    # Todos los sugeridos (para el home)
     all_suggested_habits = []
-    for cat_id, habits in HABIT_CATALOG.items():
+    for _, habits in HABIT_CATALOG.items():
         all_suggested_habits.extend(habits)
 
-    return render_template("home.html",
-                         categories=categories,
-                         habits=user_habits,
-                         suggested_habits=all_suggested_habits)
+    return render_template(
+        "home.html",
+        categories=categories,
+        habits=user_habits,
+        suggested_habits=all_suggested_habits,
+    )
 
 
 # Alias para compatibilidad si en algún lugar quedó explore.explore
@@ -122,19 +125,18 @@ def category(category_id: int):
     if not cat:
         abort(404)
     user_habits = Habit.list_active_by_owner_and_category(email, category_id)
-
-    # Obtener hábitos sugeridos para esta categoría
     suggested_habits = HABIT_CATALOG.get(category_id, [])
-
-    return render_template("category.html",
-                         category=cat,
-                         habits=user_habits,
-                         suggested_habits=suggested_habits)
+    return render_template(
+        "category.html",
+        category=cat,
+        habits=user_habits,
+        suggested_habits=suggested_habits,
+    )
 
 
 @explore_bp.route("/add_habit/<habit_id>", methods=["POST"])
 def add_habit(habit_id: str):
-    """Agregar un hábito del catálogo al panel del usuario"""
+    """Agregar un hábito del catálogo al panel del usuario."""
     if not _require_login():
         return redirect(url_for("auth.login"))
 
@@ -154,30 +156,36 @@ def add_habit(habit_id: str):
         flash("Hábito no encontrado en el catálogo", "danger")
         return redirect(url_for("explore.home"))
 
+    # HU-18: validar duplicado por nombre para este usuario
+    if Habit.exists_by_name(email, habit_found["name"]):
+        flash("Ya tienes un hábito con ese nombre. Intenta con otro.", "warning")
+        referer = request.referrer
+        return redirect(referer or url_for("explore.home"))
+
     # Crear el hábito en la base de datos con reintentos
     max_retries = 3
     retry_count = 0
-
     while retry_count < max_retries:
         try:
             Habit.create(
                 email=email,
                 name=habit_found["name"],
-                short_desc=habit_found["short_desc"],
-                category_id=habit_found["category_id"]
+                short_desc=habit_found.get("short_desc", ""),
+                category_id=habit_found.get("category_id") or 1,
             )
-            flash(f'¡Hábito "{habit_found["name"]}" agregado exitosamente!', "success")
+            flash(
+                f'¡Hábito "{habit_found["name"]}" agregado exitosamente!', "success")
             break
         except Exception as e:
             retry_count += 1
             if retry_count >= max_retries:
                 error_msg = str(e)
                 if "locked" in error_msg.lower():
-                    flash("La base de datos está ocupada. Por favor intenta nuevamente.", "warning")
+                    flash(
+                        "La base de datos está ocupada. Por favor intenta nuevamente.", "warning")
                 else:
                     flash(f"Error al agregar el hábito: {error_msg}", "danger")
             else:
-                # Esperar un poco antes de reintentar
                 import time
                 time.sleep(0.1)
                 continue
@@ -191,20 +199,32 @@ def add_habit(habit_id: str):
 
 @explore_bp.route("/remove_habit/<int:habit_id>", methods=["POST"])
 def remove_habit(habit_id: int):
-    """Eliminar un hábito del panel del usuario"""
+    """Eliminar un hábito del panel del usuario."""
     if not _require_login():
         return redirect(url_for("auth.login"))
 
     try:
-        # Eliminar el hábito de la base de datos
         Habit.delete(habit_id)
         flash("Hábito eliminado exitosamente", "success")
     except Exception as e:
-        error_msg = str(e)
-        flash(f"Error al eliminar el hábito: {error_msg}", "danger")
+        flash(f"Error al eliminar el hábito: {str(e)}", "danger")
 
-    # Redirigir de vuelta según el referer
     referer = request.referrer
     if referer:
         return redirect(referer)
     return redirect(url_for("explore.home"))
+
+
+@explore_bp.route("/my-habits")
+def my_habits():
+    """TT-05: vista simple de hábitos del usuario."""
+    if not _require_login():
+        return redirect(url_for("auth.login"))
+    email = session["user"]["email"]
+    habits = Habit.list_by_owner(email)
+    try:
+        return render_template("my_habits.html", habits=habits)
+    except TemplateNotFound:
+        # Fallback temporal si aún no existe la plantilla
+        categories = Category.all()
+        return render_template("home.html", categories=categories, habits=habits, suggested_habits=[])

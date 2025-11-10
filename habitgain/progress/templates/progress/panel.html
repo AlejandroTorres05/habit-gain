@@ -3,8 +3,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
     <h2 class="mb-1">Panel de Hábitos</h2>
-    <p class="text-muted mb-0">Progreso de hoy: <strong>{{ completed }}</strong> de <strong>{{ total }}</strong>
-      completados</p>
+    <p class="text-muted mb-0">
+      Progreso de hoy:
+      <strong>{{ completed }}</strong> de <strong>{{ total }}</strong> completados
+    </p>
   </div>
   <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}">
     <i class="bi bi-plus-circle"></i> Nuevo Hábito
@@ -16,27 +18,36 @@
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2">
       <span class="fw-medium">Progreso de Hoy</span>
-      <span class="text-muted">{{ ((completed / total) * 100) | round | int }}%</span>
+      <span class="text-muted">
+        {{ ((completed / total) * 100) | round | int }}%
+      </span>
     </div>
     <div class="progress" style="height: 8px;">
-      <div class="progress-bar" role="progressbar" style="width: {{ ((completed / total) * 100) | round }}%"></div>
+      <div class="progress-bar" role="progressbar" style="width: {{ (completed * 100 // total) if total else 0 }}%;">
+      </div>
     </div>
   </div>
 </div>
 {% endif %}
 
 {% if habits %}
-<div class="row">
+<div class="row g-3">
   {% for h in habits %}
-  <div class="col-md-6 col-lg-4 mb-3">
+  <div class="col-md-6 col-lg-4">
     <div class="card glass h-100 shadow-hover">
       <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <h6 class="card-title mb-0 fw-medium">{{ h.name or h.nombre }}</h6>
-          <div class="d-flex align-items-center gap-2">
-            {% if h.done or h.completado_hoy %}
+          <h6 class="card-title mb-0 fw-medium">
+            {{ h.name }}
+          </h6>
+          <div class="d-flex align-items-center gap-2 header-actions">
+            {% if h.active %}
             <span class="badge bg-success rounded-pill">
-              <i class="bi bi-check-circle"></i> Completado
+              <i class="bi bi-check-circle"></i> Activo
+            </span>
+            {% else %}
+            <span class="badge bg-secondary rounded-pill">
+              Inactivo
             </span>
             {% endif %}
             <a href="{{ url_for('habits.delete', habit_id=h.id) }}" class="btn btn-outline-danger btn-sm rounded-pill"
@@ -46,31 +57,25 @@
           </div>
         </div>
 
+        <p class="card-text text-muted small mb-2">
+          {{ h.short_desc or "Sin descripción" }}
+        </p>
 
-        {% if h.descripcion %}
-        <p class="card-text text-muted small mb-2">{{ h.descripcion }}</p>
-        {% endif %}
-
-        {% if h.categoria %}
+        {% if h.category_id %}
         <div class="mb-2">
-          <span class="badge bg-light text-dark rounded-pill small">{{ h.categoria }}</span>
-        </div>
-        {% endif %}
-
-        {% if h.stack_after or h.habit_base_id %}
-        <div class="small text-primary mb-3">
-          <i class="bi bi-link-45deg"></i> Vinculado a otro hábito
+          <span class="badge bg-light text-dark rounded-pill small">
+            Cat. {{ h.category_id }}
+          </span>
         </div>
         {% endif %}
 
         <div class="mt-auto">
-          {% if not (h.done or h.completado_hoy) %}
           <div class="d-grid">
-            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ h.id }}')">
+            <button class="btn btn-outline-success btn-sm rounded-pill"
+              onclick="return markCompleted(this, '{{ h.id }}');">
               <i class="bi bi-check-circle"></i> Marcar como Completado
             </button>
           </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -83,7 +88,9 @@
     <div class="card-body py-5">
       <i class="bi bi-plus-circle display-4 text-muted mb-3"></i>
       <h5 class="text-muted">No tienes hábitos aún</h5>
-      <p class="text-muted mb-4">Crea tu primer hábito para comenzar tu jornada de mejora personal</p>
+      <p class="text-muted mb-4">
+        Crea tu primer hábito para comenzar tu jornada de mejora personal
+      </p>
       <a href="{{ url_for('habits.create') }}" class="btn btn-primary rounded-pill">
         <i class="bi bi-plus-circle"></i> Crear Primer Hábito
       </a>
@@ -93,10 +100,41 @@
 {% endif %}
 
 <script>
-  function markCompleted(habitId) {
-    // Por ahora solo mostrar un mensaje
-    alert('Funcionalidad de marcar como completado en desarrollo');
-    // TODO: Implementar endpoint para marcar hábitos como completados
+  /**
+   * HU-9: Refuerzo positivo al completar
+   */
+  function markCompleted(button, habitId) {
+    // Mensaje corto, no intrusivo
+    if (window.appUtils && typeof window.appUtils.showToast === "function") {
+      window.appUtils.showToast(
+        "¡Buen trabajo! Hábito marcado como completado 🎉",
+        "success",
+        2500
+      );
+    } else {
+      console.log("Hábito completado:", habitId);
+    }
+
+    const card = button.closest(".card");
+    if (card) {
+      card.classList.add("pulse-once");
+      setTimeout(() => card.classList.remove("pulse-once"), 600);
+
+      const headerActions = card.querySelector(".header-actions");
+      if (headerActions && !headerActions.querySelector(".badge.bg-success")) {
+        const badge = document.createElement("span");
+        badge.className = "badge bg-success rounded-pill";
+        badge.innerHTML = '<i class="bi bi-check-circle"></i> Completado';
+        headerActions.prepend(badge);
+      }
+    }
+
+    button.disabled = true;
+    button.classList.remove("btn-outline-success");
+    button.classList.add("btn-success");
+    button.innerHTML = '<i class="bi bi-check-circle"></i> Completado';
+
+    return false;
   }
 </script>
 {% endblock %}
