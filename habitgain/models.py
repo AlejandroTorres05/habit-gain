@@ -774,3 +774,95 @@ class Completion:
         (c,) = cur.fetchone()
         conn.close()
         return int(c or 0)
+
+    @staticmethod
+    def get_current_streak(habit_id: int, owner_email: str) -> int:
+        """
+        Calcula la racha actual de cumplimiento de un hábito.
+        Cuenta días consecutivos desde hoy hacia atrás.
+        """
+        import datetime as _dt
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+
+        # Obtener todas las fechas de completado para este hábito, ordenadas descendentemente
+        cur.execute(
+            """
+            SELECT date FROM habit_completions
+            WHERE habit_id=? AND owner_email=?
+            ORDER BY date DESC
+            """,
+            (habit_id, owner_email),
+        )
+        rows = cur.fetchall()
+        conn.close()
+
+        if not rows:
+            return 0
+
+        # Convertir a objetos date
+        completion_dates = [_dt.date.fromisoformat(r[0]) for r in rows]
+        today = _dt.date.today()
+
+        # Verificar si completó hoy
+        streak = 0
+        expected_date = today
+
+        for completion_date in completion_dates:
+            if completion_date == expected_date:
+                streak += 1
+                expected_date -= _dt.timedelta(days=1)
+            elif completion_date < expected_date:
+                # Hubo un salto, la racha se rompe
+                break
+
+        return streak
+
+    @staticmethod
+    def calculate_strength(habit_id: int, owner_email: str) -> Dict[str, Any]:
+        """
+        Calcula la fortaleza de un hábito basado en la racha de cumplimiento.
+
+        Retorna:
+            - streak: racha actual (días consecutivos)
+            - strength: nivel de fortaleza (0-100)
+            - level: nivel descriptivo (débil, en desarrollo, fuerte, inquebrantable)
+            - color: color para representación visual
+        """
+        streak = Completion.get_current_streak(habit_id, owner_email)
+
+        # Calcular fortaleza en escala 0-100
+        # Fórmula: fortaleza crece logarítmicamente con la racha
+        # 0 días = 0%, 7 días = 50%, 21 días = 75%, 66 días = 90%, 100+ días = 100%
+        if streak == 0:
+            strength = 0
+        elif streak <= 7:
+            strength = int((streak / 7) * 50)
+        elif streak <= 21:
+            strength = 50 + int(((streak - 7) / 14) * 25)
+        elif streak <= 66:
+            strength = 75 + int(((streak - 21) / 45) * 15)
+        else:
+            strength = min(100, 90 + int(((streak - 66) / 34) * 10))
+
+        # Determinar nivel y color
+        if strength < 25:
+            level = "Débil"
+            color = "danger"  # rojo
+        elif strength < 50:
+            level = "En desarrollo"
+            color = "warning"  # amarillo
+        elif strength < 75:
+            level = "Fuerte"
+            color = "info"  # azul
+        else:
+            level = "Inquebrantable"
+            color = "success"  # verde
+
+        return {
+            "streak": streak,
+            "strength": strength,
+            "level": level,
+            "color": color
+        }

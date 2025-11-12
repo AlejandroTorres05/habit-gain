@@ -40,6 +40,14 @@ def panel():
         if cid:
             h["category_name"] = cats.get(cid)
 
+    # HU-8: Calcular fortaleza de cada hábito basado en racha de cumplimiento
+    for h in habits:
+        strength_data = Completion.calculate_strength(h["id"], user)
+        h["strength"] = strength_data["strength"]
+        h["strength_level"] = strength_data["level"]
+        h["strength_color"] = strength_data["color"]
+        h["streak"] = strength_data["streak"]
+
     # Completados hoy
     completed_today_ids = set(Completion.completed_today_ids(user))
     completed = len(completed_today_ids)
@@ -117,6 +125,14 @@ def complete(habit_id: int):
         return jsonify({"ok": False, "error": "invalid_csrf"}), 400
     try:
         Completion.mark_completed(habit_id, user)
-        return jsonify({"ok": True})
+        # HU-8 CDA3: Calcular fortaleza actualizada en tiempo real
+        strength_data = Completion.calculate_strength(habit_id, user)
+        return jsonify({
+            "ok": True,
+            "strength": strength_data["strength"],
+            "strength_level": strength_data["level"],
+            "strength_color": strength_data["color"],
+            "streak": strength_data["streak"]
+        })
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
