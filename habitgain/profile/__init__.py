@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from ..models import User, Database, count_active_habits_from_db
-from ..habits import USER_HABITS  # mantenemos coherencia con el MVP en memoria
 from ..auth import USERS as AUTH_USERS  # login en memoria heredado
 
 import secrets
@@ -83,9 +82,8 @@ def edit():
     user_data = User.get_by_email(user_email) or {
         "email": user_email, "name": session["user"].get("name", "")}
 
-    # Conteo de hábitos: seguimos usando el store en memoria para no romper el resto del app
-    habits_count = len(USER_HABITS.get(user_email, []))
-    # Si prefieres BD: habits_count = count_active_habits_from_db(user_email)
+    # Conteo de hábitos basado en BD para coherencia
+    habits_count = count_active_habits_from_db(user_email)
 
     csrf_token = _get_csrf_token()
     return render_template("profile/edit.html", user=user_data, habits_count=habits_count, csrf_token=csrf_token)

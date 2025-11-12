@@ -11,19 +11,55 @@
   </a>
 </div>
 
-{% if completed > 0 and total > 0 %}
-<div class="card glass mb-4">
-  <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="fw-medium">Progreso de Hoy</span>
-      <span class="text-muted">{{ ((completed / total) * 100) | round | int }}%</span>
-    </div>
-    <div class="progress" style="height: 8px;">
-      <div class="progress-bar" role="progressbar" style="width: {{ ((completed / total) * 100) | round }}%"></div>
+{% set percent = percent if percent is defined else (((completed / (total if total>0 else 1)) * 100) | round | int) %}
+
+<div class="row g-3 mb-4 align-items-stretch">
+  <div class="col-md-8">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-4 align-items-center">
+          <div class="progress-ring" style="--p: {{ percent }};">
+            <div class="progress-value">{{ percent }}%</div>
+            <div class="progress-caption">Hoy</div>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-medium">Progreso de Hoy</span>
+              <span class="text-muted">{{ percent }}%</span>
+            </div>
+            <div class="progress progress-animated" style="height: 10px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ percent }}%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2 small text-muted">
+              <span>Completados: {{ completed }}</span>
+              <span>Total planificado del día: {{ planned_total_max if planned_total_max is defined else total }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-{% endif %}
+  <div class="col-md-4">
+    <div class="card glass h-100 weekly-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-medium">Últimos 7 días</span>
+          <span class="brand-badge">7d</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div class="metric">
+            <div class="label">Días cumplidos</div>
+            <div class="value">{{ days_completed }}</div>
+          </div>
+          <div class="metric text-end">
+            <div class="label">Planificados</div>
+            <div class="value">{{ days_planned }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
 
 {% if habits %}
 <div class="row">
@@ -34,7 +70,7 @@
         <div class="d-flex justify-content-between align-items-start mb-2">
           <h6 class="card-title mb-0 fw-medium">{{ h.name or h.nombre }}</h6>
           <div class="d-flex align-items-center gap-2">
-            {% if h.done or h.completado_hoy %}
+            {% if h.id in completed_today_ids %}
             <span class="badge bg-success rounded-pill">
               <i class="bi bi-check-circle"></i> Completado
             </span>
@@ -64,7 +100,7 @@
         {% endif %}
 
         <div class="mt-auto">
-          {% if not (h.done or h.completado_hoy) %}
+          {% if h.id not in completed_today_ids %}
           <div class="d-grid">
             <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ h.id }}')">
               <i class="bi bi-check-circle"></i> Marcar como Completado
@@ -93,10 +129,24 @@
 {% endif %}
 
 <script>
-  function markCompleted(habitId) {
-    // Por ahora solo mostrar un mensaje
-    alert('Funcionalidad de marcar como completado en desarrollo');
-    // TODO: Implementar endpoint para marcar hábitos como completados
+  async function markCompleted(habitId) {
+    try {
+      const res = await fetch(`${window.location.origin}/progress/complete/${habitId}`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'fetch',
+          'X-CSRF-Token': '{{ csrf_token }}'
+        }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error al completar hábito');
+      }
+    } catch (e) {
+      alert('Error de red');
+    }
   }
 </script>
 {% endblock %}

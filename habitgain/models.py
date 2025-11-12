@@ -77,10 +77,43 @@ class Database:
                             "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "habits", "short_desc", "TEXT")
         self._ensure_column(conn, "habits", "category_id", "INTEGER")
+        # columnas usadas por Habit.create y catálogo sugerido
+        self._ensure_column(conn, "habits", "frequency", "TEXT")
+        self._ensure_column(conn, "habits", "long_desc", "TEXT")
+        self._ensure_column(conn, "habits", "why_works", "TEXT")
+        self._ensure_column(conn, "habits", "icon", "TEXT")
         self._migrate_owner_email(conn)
         self._maybe_create_index(
             conn, "habits", "idx_habits_owner_email", "owner_email")
         self._maybe_create_index(conn, "habits", "idx_habits_active", "active")
+
+        # ---- Tabla de completados (habit_completions) ----
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS habit_completions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                habit_id INTEGER NOT NULL,
+                owner_email TEXT NOT NULL,
+                date TEXT NOT NULL,
+                UNIQUE (habit_id, date),
+                FOREIGN KEY (habit_id) REFERENCES habits(id)
+            )
+            """
+        )
+        self._maybe_create_index(conn, "habit_completions", "idx_hc_owner_date", "owner_email")
+
+        # ---- Tabla de progreso diario (max planificado por día) ----
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS daily_progress (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_email TEXT NOT NULL,
+                date TEXT NOT NULL,
+                planned_total_max INTEGER NOT NULL,
+                UNIQUE(owner_email, date)
+            )
+            """
+        )
 
         conn.commit()
         conn.close()
@@ -317,6 +350,25 @@ class Category:
         return [dict(r) for r in rows]
 
     @staticmethod
+    def update(owner_email: str, habit_id: int, *, name: str, short_desc: str, frequency: str, category_id: int) -> int:
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                UPDATE habits
+                   SET name=?, short_desc=?, frequency=?, category_id=?
+                 WHERE id=? AND owner_email=?
+                """,
+                (name, short_desc, frequency, category_id, habit_id, owner_email),
+            )
+            conn.commit()
+            return int(cur.rowcount or 0)
+        finally:
+            conn.close()
+
+    @staticmethod
     def get_by_id(category_id: int) -> Optional[Dict[str, Any]]:
         db = Database()
         conn = db.get_connection()
@@ -391,6 +443,23 @@ class Habit:
         return [dict(r) for r in rows]
 
     @staticmethod
+    def get_by_id(habit_id: int) -> Optional[Dict[str, Any]]:
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, owner_email, name, active, short_desc, category_id, frequency
+            FROM habits
+            WHERE id=?
+            """,
+            (habit_id,),
+        )
+        row = cur.fetchone()
+        conn.close()
+        return dict(row) if row else None
+
+    @staticmethod
     def count_active(email: str) -> int:
         db = Database()
         conn = db.get_connection()
@@ -462,8 +531,124 @@ class Habit:
 
 
 # -----------------------
+# Daily progress tracking (planned total max per day)
+# -----------------------
+
+class DailyProgress:
+    @staticmethod
+    def ensure_and_get_planned_max(owner_email: str, date_str: str, current_active_total: int) -> int:
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT planned_total_max FROM daily_progress WHERE owner_email=? AND date=?",
+                (owner_email, date_str),
+            )
+            row = cur.fetchone()
+            if row is None:
+                planned = max(0, int(current_active_total))
+                cur.execute(
+                    "INSERT INTO daily_progress (owner_email, date, planned_total_max) VALUES (?, ?, ?)",
+                    (owner_email, date_str, planned),
+                )
+                conn.commit()
+                return planned
+            planned = int(row[0])
+            if current_active_total > planned:
+                planned = int(current_active_total)
+                cur.execute(
+                    "UPDATE daily_progress SET planned_total_max=? WHERE owner_email=? AND date=?",
+                    (planned, owner_email, date_str),
+                )
+                conn.commit()
+            return planned
+        finally:
+            conn.close()
+
+    # (CRUD de hábitos se encuentra en la clase Habit)
+
+
+# -----------------------
 # Helper para perfil
 # -----------------------
 
 def count_active_habits_from_db(email: str) -> int:
     return Habit.count_active(email)
+
+
+# -----------------------
+# Habit completion tracking
+# -----------------------
+
+class Completion:
+    @staticmethod
+    def mark_completed(habit_id: int, owner_email: str, date_str: Optional[str] = None) -> None:
+        import datetime as _dt
+        db = Database()
+        conn = db.get_connection()
+        try:
+            if not date_str:
+                date_str = _dt.date.today().isoformat()
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT OR IGNORE INTO habit_completions (habit_id, owner_email, date)
+                VALUES (?, ?, ?)
+                """,
+                (habit_id, owner_email, date_str),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def completed_today_ids(owner_email: str) -> List[int]:
+        import datetime as _dt
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        today = _dt.date.today().isoformat()
+        cur.execute(
+            """
+            SELECT habit_id FROM habit_completions
+            WHERE owner_email=? AND date=?
+            """,
+            (owner_email, today),
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return [int(r[0]) for r in rows]
+
+    @staticmethod
+    def count_completed_in_range(owner_email: str, start_date: str, end_date: str) -> int:
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT COUNT(*) AS c FROM habit_completions
+            WHERE owner_email=? AND date BETWEEN ? AND ?
+            """,
+            (owner_email, start_date, end_date),
+        )
+        (c,) = cur.fetchone()
+        conn.close()
+        return int(c or 0)
+
+    @staticmethod
+    def count_days_with_completion(owner_email: str, start_date: str, end_date: str) -> int:
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT COUNT(DISTINCT date) AS c FROM habit_completions
+            WHERE owner_email=? AND date BETWEEN ? AND ?
+            """,
+            (owner_email, start_date, end_date),
+        )
+        (c,) = cur.fetchone()
+        conn.close()
+        return int(c or 0)
+

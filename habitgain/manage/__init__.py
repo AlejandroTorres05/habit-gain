@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from ..models import Habit
 
 manage_bp = Blueprint("manage", __name__, template_folder="templates")
 
@@ -11,7 +12,7 @@ def delete_habit(habit_id):
         # Eliminar el hábito
         Habit.delete(habit_id)
         flash("Habit deleted successfully!", "success")
-        return redirect(url_for('explore.dashboard'))  # <-- ajusta según tu ruta principal
+        return redirect(url_for('explore.home'))
 
     # GET → mostrar la página de confirmación
     return render_template('manage/delete.html', habit_id=habit_id)
