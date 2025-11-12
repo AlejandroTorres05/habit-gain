@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from ..models import Habit
+from ..models import Habit, Category
+import secrets
 
 habits_bp = Blueprint("habits", __name__, template_folder="templates")
 
@@ -72,15 +73,15 @@ def _get_habit_by_id(user, habit_id):
 
 
 def _get_categorias():
-    
+    # Se usa para compatibilidad con new.html (strings); para edición usamos Category.all()
     return [
-        'Salud', 
-        'Productividad', 
-        'Mindfulness', 
+        'Salud',
+        'Productividad',
+        'Mindfulness',
         'Nutrición',
-        'Aprendizaje', 
-        'Relaciones', 
-        'Finanzas', 
+        'Aprendizaje',
+        'Relaciones',
+        'Finanzas',
         'Creatividad',
         'General'
     ]
@@ -157,3 +158,90 @@ def delete(habit_id):
         return redirect(url_for("progress.panel"))
 
     return render_template("habits/delete.html", habit=habit)
+
+
+# HU-14: Editar hábito
+def _get_csrf_token_edit() -> str:
+    token = secrets.token_urlsafe(32)
+    session["csrf_token_habits_edit"] = token
+    session.modified = True
+    return token
+
+
+@habits_bp.route("/<int:habit_id>/edit", methods=["GET", "POST"])
+def edit(habit_id: int):
+    user = _user_email()
+    if not user:
+        flash("Debes iniciar sesión primero", "warning")
+        return redirect(url_for("auth.login"))
+
+    habit = Habit.get_by_id(habit_id)
+    if not habit:
+        flash("No se encontró el hábito solicitado.", "danger")
+        return redirect(url_for("progress.panel"))
+    if habit.get("owner_email") != user:
+        flash("No tienes permisos para editar este hábito.", "warning")
+        return redirect(url_for("progress.panel"))
+
+    if request.method == "POST":
+        # CSRF
+        form_token = request.form.get("csrf_token", "")
+        sess_token = session.pop("csrf_token_habits_edit", None)
+        if not sess_token or form_token != sess_token:
+            flash("Token CSRF inválido.", "danger")
+            return redirect(url_for("habits.edit", habit_id=habit_id))
+
+        # Datos
+        name = (request.form.get("name") or request.form.get("nombre") or "").strip()
+        short_desc = (request.form.get("short_desc") or request.form.get("descripcion") or "").strip()
+        freq_in = (request.form.get("frequency") or request.form.get("frecuencia") or "daily").strip().lower()
+        cat_id_raw = request.form.get("category_id") or request.form.get("categoria_id") or ""
+
+        # Validaciones
+        errors = []
+        if not name:
+            errors.append("El nombre del hábito es obligatorio")
+
+        # Normalizar frecuencia
+        freq_map = {
+            "diaria": "daily", "semanal": "weekly", "mensual": "monthly",
+            "daily": "daily", "weekly": "weekly", "monthly": "monthly",
+        }
+        frequency = freq_map.get(freq_in)
+        if frequency is None:
+            errors.append("Frecuencia inválida")
+
+        try:
+            category_id = int(cat_id_raw) if cat_id_raw else (habit.get("category_id") or 1)
+        except ValueError:
+            errors.append("Categoría inválida")
+            category_id = habit.get("category_id") or 1
+
+        if not Category.get_by_id(category_id):
+            errors.append("La categoría seleccionada no existe")
+
+        if errors:
+            for e in errors:
+                flash(e, "danger")
+            categories = Category.all()
+            # Render nuevamente con valores actuales del form
+            return render_template(
+                "habits/edit.html",
+                habit={**habit, "name": name, "short_desc": short_desc, "frequency": frequency, "category_id": category_id},
+                categories=categories,
+                csrf_token=_get_csrf_token_edit(),
+            )
+
+        # Persistir
+        updated = Habit.update(user, habit_id, name=name, short_desc=short_desc, frequency=frequency, category_id=category_id)
+        if updated <= 0:
+            flash("No se pudo actualizar el hábito.", "danger")
+            return redirect(url_for("habits.edit", habit_id=habit_id))
+
+        flash("Hábito actualizado correctamente", "success")
+        return redirect(url_for("progress.panel"))
+
+    # GET
+    categories = Category.all()
+    csrf_token = _get_csrf_token_edit()
+    return render_template("habits/edit.html", habit=habit, categories=categories, csrf_token=csrf_token)
