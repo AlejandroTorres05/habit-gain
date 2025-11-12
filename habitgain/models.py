@@ -79,9 +79,11 @@ class Database:
         self._ensure_column(conn, "habits", "category_id", "INTEGER")
         # columnas usadas por Habit.create y catálogo sugerido
         self._ensure_column(conn, "habits", "frequency", "TEXT")
+        self._ensure_column(conn, "habits", "frequency_detail", "TEXT")
         self._ensure_column(conn, "habits", "long_desc", "TEXT")
         self._ensure_column(conn, "habits", "why_works", "TEXT")
         self._ensure_column(conn, "habits", "icon", "TEXT")
+        self._ensure_column(conn, "habits", "habit_base_id", "INTEGER")
         self._migrate_owner_email(conn)
         self._maybe_create_index(
             conn, "habits", "idx_habits_owner_email", "owner_email")
@@ -349,24 +351,6 @@ class Category:
         conn.close()
         return [dict(r) for r in rows]
 
-    @staticmethod
-    def update(owner_email: str, habit_id: int, *, name: str, short_desc: str, frequency: str, category_id: int) -> int:
-        db = Database()
-        conn = db.get_connection()
-        try:
-            cur = conn.cursor()
-            cur.execute(
-                """
-                UPDATE habits
-                   SET name=?, short_desc=?, frequency=?, category_id=?
-                 WHERE id=? AND owner_email=?
-                """,
-                (name, short_desc, frequency, category_id, habit_id, owner_email),
-            )
-            conn.commit()
-            return int(cur.rowcount or 0)
-        finally:
-            conn.close()
 
     @staticmethod
     def get_by_id(category_id: int) -> Optional[Dict[str, Any]]:
@@ -413,7 +397,7 @@ class Habit:
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, owner_email, name, active, short_desc, category_id
+            SELECT id, owner_email, name, active, short_desc, category_id, frequency, habit_base_id
             FROM habits
             WHERE owner_email=?
             ORDER BY id DESC
@@ -431,7 +415,7 @@ class Habit:
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, owner_email, name, active, short_desc, category_id
+            SELECT id, owner_email, name, active, short_desc, category_id, frequency, habit_base_id
             FROM habits
             WHERE owner_email=? AND active=1
             ORDER BY id DESC
@@ -449,7 +433,7 @@ class Habit:
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, owner_email, name, active, short_desc, category_id, frequency
+            SELECT id, owner_email, name, active, short_desc, category_id, frequency, habit_base_id
             FROM habits
             WHERE id=?
             """,
@@ -471,16 +455,16 @@ class Habit:
         return int(c or 0)
 
     @staticmethod
-    def create(email: str, name: str, short_desc: Optional[str] = None, category_id: Optional[int] = None) -> int:
+    def create(email: str, name: str, short_desc: Optional[str] = None, category_id: Optional[int] = None, *, frequency: str = "daily", habit_base_id: Optional[int] = None, icon: Optional[str] = None, frequency_detail: Optional[str] = None) -> int:
         db = Database()
         conn = db.get_connection()
         try:
             cur = conn.cursor()
             cur.execute(
                 """INSERT INTO habits
-                (owner_email, name, active, short_desc, category_id, frequency, long_desc, why_works, icon)
-                VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?)""",
-                (email, name, short_desc or "", category_id or 1, "daily", "", "", "🎯"),
+                (owner_email, name, active, short_desc, category_id, frequency, frequency_detail, long_desc, why_works, icon, habit_base_id)
+                VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (email, name, short_desc or "", category_id or 1, frequency or "daily", frequency_detail or "", "", "", icon or "🎯", habit_base_id),
             )
             conn.commit()
             new_id = cur.lastrowid
@@ -508,6 +492,25 @@ class Habit:
             cur = conn.cursor()
             cur.execute("DELETE FROM habits WHERE id=?", (habit_id,))
             conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def update(owner_email: str, habit_id: int, *, name: str, short_desc: str, frequency: str, category_id: int, habit_base_id: Optional[int] = None) -> int:
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                UPDATE habits
+                   SET name=?, short_desc=?, frequency=?, category_id=?, habit_base_id=?
+                 WHERE id=? AND owner_email=?
+                """,
+                (name, short_desc, frequency, category_id, habit_base_id, habit_id, owner_email),
+            )
+            conn.commit()
+            return int(cur.rowcount or 0)
         finally:
             conn.close()
 
