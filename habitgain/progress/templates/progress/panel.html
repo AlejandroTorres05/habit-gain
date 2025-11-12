@@ -3,94 +3,317 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
     <h2 class="mb-1">Panel de Hábitos</h2>
-    <p class="text-muted mb-0">
-      Progreso de hoy:
-      <strong>{{ completed }}</strong> de <strong>{{ total }}</strong> completados
-    </p>
+    <p class="text-muted mb-0">Progreso de hoy: <strong>{{ completed }}</strong> de <strong>{{ total }}</strong>
+      completados</p>
   </div>
   <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}">
     <i class="bi bi-plus-circle"></i> Nuevo Hábito
   </a>
+  <a class="btn btn-ghost ms-2" href="{{ url_for('explore.home') }}">
+    <i class="bi bi-compass"></i> Explorar plantillas
+  </a>
 </div>
 
-{% if completed > 0 and total > 0 %}
-<div class="card glass mb-4">
-  <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="fw-medium">Progreso de Hoy</span>
-      <span class="text-muted">
-        {{ ((completed / total) * 100) | round | int }}%
-      </span>
-    </div>
-    <div class="progress" style="height: 8px;">
-      <div class="progress-bar" role="progressbar" style="width: {{ (completed * 100 // total) if total else 0 }}%;">
+{% set percent = percent if percent is defined else (((completed / (total if total>0 else 1)) * 100) | round | int) %}
+
+<div class="row g-3 mb-4 align-items-stretch">
+  <div class="col-md-8">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-4 align-items-center">
+          <div class="progress-ring" style="--p: {{ percent }};">
+            <div class="progress-value">{{ percent }}%</div>
+            <div class="progress-caption">Hoy</div>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-medium">Progreso de Hoy</span>
+              <span class="text-muted">{{ percent }}%</span>
+            </div>
+            <div class="progress progress-animated" style="height: 10px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ percent }}%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2 small text-muted">
+              <span>Completados: {{ completed }}</span>
+              <span>Total planificado del día: {{ planned_total_max if planned_total_max is defined else total }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
-{% endif %}
+  <div class="col-md-4">
+    <div class="card glass h-100 weekly-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-medium">Últimos 7 días</span>
+          <span class="brand-badge">7d</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div class="metric">
+            <div class="label">Días cumplidos</div>
+            <div class="value">{{ days_completed }}</div>
+          </div>
+          <div class="metric text-end">
+            <div class="label">Planificados</div>
+            <div class="value">{{ days_planned }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
 
 {% if habits %}
-<div class="row g-3">
-  {% for h in habits %}
-  <div class="col-md-6 col-lg-4">
+
+<!-- Sección: Pendientes para hoy -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h5 class="mb-0">Para hoy</h5>
+  <span class="text-muted small">Tareas activas y no completadas</span>
+</div>
+<div class="row">
+  {% for base in bases_pending %}
+  <div class="col-md-6 col-lg-4 mb-3">
     <div class="card glass h-100 shadow-hover">
       <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <h6 class="card-title mb-0 fw-medium">
-            {{ h.name }}
-          </h6>
-          <div class="d-flex align-items-center gap-2 header-actions">
-            {% if h.active %}
+          <h6 class="card-title mb-0 fw-medium">{{ base.name or base.nombre }}</h6>
+          <div class="d-flex align-items-center gap-2">
+            {% if base.id in completed_today_ids %}
             <span class="badge bg-success rounded-pill">
-              <i class="bi bi-check-circle"></i> Activo
-            </span>
-            {% else %}
-            <span class="badge bg-secondary rounded-pill">
-              Inactivo
+              <i class="bi bi-check-circle"></i> Completado
             </span>
             {% endif %}
-            <a href="{{ url_for('habits.delete', habit_id=h.id) }}" class="btn btn-outline-danger btn-sm rounded-pill"
+            <a href="{{ url_for('habits.edit', habit_id=base.id) }}" class="btn btn-outline-secondary btn-sm rounded-pill" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ url_for('habits.delete', habit_id=base.id) }}" class="btn btn-outline-danger btn-sm rounded-pill"
               title="Eliminar">
               <i class="bi bi-trash"></i>
             </a>
           </div>
         </div>
 
-        <p class="card-text text-muted small mb-2">
-          {{ h.short_desc or "Sin descripción" }}
-        </p>
-
-        {% if h.category_id %}
-        <div class="mb-2">
-          <span class="badge bg-light text-dark rounded-pill small">
-            Cat. {{ h.category_id }}
-          </span>
-        </div>
+        {% if base.short_desc or base.descripcion %}
+        <p class="card-text text-muted small mb-2">{{ base.short_desc or base.descripcion }}</p>
         {% endif %}
 
+        <div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
+          {% if base.category_name %}
+          <span class="badge rounded-pill small" style="background:#e7e7ff;color:#3b2b9f;">{{ base.category_name }}</span>
+          {% elif base.category_id %}
+          <span class="badge bg-light text-dark rounded-pill small">Categoría #{{ base.category_id }}</span>
+          {% endif %}
+          {% if base.frequency %}
+          <span class="badge bg-primary-subtle text-dark rounded-pill small">{{ 'Diaria' if base.frequency=='daily' else ('Semanal' if base.frequency=='weekly' else ('Mensual' if base.frequency=='monthly' else base.frequency)) }}</span>
+          {% endif %}
+        </div>
+
         <div class="mt-auto">
+          {% if base.id not in completed_today_ids %}
           <div class="d-grid">
-            <button class="btn btn-outline-success btn-sm rounded-pill"
-              onclick="return markCompleted(this, '{{ h.id }}');">
+            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ base.id }}')">
               <i class="bi bi-check-circle"></i> Marcar como Completado
             </button>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
+  
+  {% set children = children_pending_map.get(base.id, []) %}
+  {% if children %}
+    {% for h in children %}
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card glass h-100 shadow-hover" style="border-left:4px solid #7c71ff;">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0 fw-medium d-flex align-items-center gap-2">
+              {% if h.id in next_due_ids %}
+              <span class="badge bg-info text-dark rounded-pill">Siguiente</span>
+              {% endif %}
+              {{ h.name or h.nombre }}
+            </h6>
+            <div class="d-flex align-items-center gap-2">
+              {% if h.id in completed_today_ids %}
+              <span class="badge bg-success rounded-pill">
+                <i class="bi bi-check-circle"></i> Completado
+              </span>
+              {% endif %}
+              <a href="{{ url_for('habits.edit', habit_id=h.id) }}" class="btn btn-outline-secondary btn-sm rounded-pill" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{{ url_for('habits.delete', habit_id=h.id) }}" class="btn btn-outline-danger btn-sm rounded-pill" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </div>
+
+          {% if h.short_desc or h.descripcion %}
+          <p class="card-text text-muted small mb-2">{{ h.short_desc or h.descripcion }}</p>
+          {% endif %}
+
+          <div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
+            {% if h.category_name %}
+            <span class="badge rounded-pill small" style="background:#e7e7ff;color:#3b2b9f;">{{ h.category_name }}</span>
+            {% elif h.category_id %}
+            <span class="badge bg-light text-dark rounded-pill small">Categoría #{{ h.category_id }}</span>
+            {% endif %}
+            {% if h.frequency %}
+            <span class="badge bg-primary-subtle text-dark rounded-pill small">{{ 'Diaria' if h.frequency=='daily' else ('Semanal' if h.frequency=='weekly' else ('Mensual' if h.frequency=='monthly' else h.frequency)) }}</span>
+            {% endif %}
+          </div>
+
+          {% if h.base_name %}
+          <div class="small mb-3">
+            <div class="text-primary d-flex align-items-center gap-1">
+              <i class="bi bi-link-45deg"></i>
+              <span>Vinculado a: <strong>{{ h.base_name }}</strong></span>
+            </div>
+            {% if h.id in next_due_ids %}
+            <div class="text-muted mt-1">Siguiente porque ya completaste <strong>{{ h.base_name }}</strong> hoy.</div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="mt-auto">
+            {% if h.id not in completed_today_ids %}
+            <div class="d-grid">
+              <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ h.id }}')">
+                <i class="bi bi-check-circle"></i> Marcar como Completado
+              </button>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+  {% endfor %}
+  
+  {# Hijos pendientes de bases completadas hoy #}
+  {% for base in bases_completed %}
+    {% set children_p = children_pending_map.get(base.id, []) %}
+    {% if children_p %}
+      {% for h in children_p %}
+      <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card glass h-100 shadow-hover" style="border-left:4px solid #7c71ff;">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="card-title mb-0 fw-medium d-flex align-items-center gap-2">
+                <span class="badge bg-info text-dark rounded-pill">Siguiente</span>
+                {{ h.name or h.nombre }}
+              </h6>
+              <div class="d-flex align-items-center gap-2">
+                {% if h.id in completed_today_ids %}
+                <span class="badge bg-success rounded-pill">
+                  <i class="bi bi-check-circle"></i> Completado
+                </span>
+                {% endif %}
+                <a href="{{ url_for('habits.edit', habit_id=h.id) }}" class="btn btn-outline-secondary btn-sm rounded-pill" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{{ url_for('habits.delete', habit_id=h.id) }}" class="btn btn-outline-danger btn-sm rounded-pill" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </div>
+
+            {% if h.short_desc or h.descripcion %}
+            <p class="card-text text-muted small mb-2">{{ h.short_desc or h.descripcion }}</p>
+            {% endif %}
+
+            <div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
+              {% if h.category_name %}
+              <span class="badge rounded-pill small" style="background:#e7e7ff;color:#3b2b9f;">{{ h.category_name }}</span>
+              {% elif h.category_id %}
+              <span class="badge bg-light text-dark rounded-pill small">Categoría #{{ h.category_id }}</span>
+              {% endif %}
+              {% if h.frequency %}
+              <span class="badge bg-primary-subtle text-dark rounded-pill small">{{ 'Diaria' if h.frequency=='daily' else ('Semanal' if h.frequency=='weekly' else ('Mensual' if h.frequency=='monthly' else h.frequency)) }}</span>
+              {% endif %}
+            </div>
+
+            {% if h.base_name %}
+            <div class="small mb-3">
+              <div class="text-primary d-flex align-items-center gap-1">
+                <i class="bi bi-link-45deg"></i>
+                <span>Vinculado a: <strong>{{ h.base_name }}</strong></span>
+              </div>
+              <div class="text-muted mt-1">Siguiente porque ya completaste <strong>{{ h.base_name }}</strong> hoy.</div>
+            </div>
+            {% endif %}
+
+            <div class="mt-auto">
+              {% if h.id not in completed_today_ids %}
+              <div class="d-grid">
+                <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ h.id }}')">
+                  <i class="bi bi-check-circle"></i> Marcar como Completado
+                </button>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}
   {% endfor %}
 </div>
+
+<!-- Sección: Completados hoy -->
+<div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+  <h6 class="mb-0">Completados hoy</h6>
+  <span class="text-muted small">Lo que ya terminaste</span>
+</div>
+<div class="row">
+  {% for base in bases_completed %}
+  <div class="col-md-6 col-lg-4 mb-3">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="card-title mb-0 fw-medium">{{ base.name }}</h6>
+          <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completado</span>
+        </div>
+        {% if base.short_desc %}
+        <p class="text-muted small mb-2">{{ base.short_desc }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% set children_c = children_completed_map.get(base.id, []) %}
+  {% if children_c %}
+    {% for h in children_c %}
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card glass h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0 fw-medium">{{ h.name }}</h6>
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completado</span>
+          </div>
+          {% if h.base_name %}
+          <div class="small text-primary d-flex align-items-center gap-1 mb-1"><i class="bi bi-link-45deg"></i> Vinculado a: <strong>{{ h.base_name }}</strong></div>
+          {% endif %}
+          {% if h.short_desc %}
+          <p class="text-muted small mb-0">{{ h.short_desc }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+  {% endfor %}
+</div>
+
 {% else %}
 <div class="text-center py-5">
   <div class="card glass">
     <div class="card-body py-5">
       <i class="bi bi-plus-circle display-4 text-muted mb-3"></i>
       <h5 class="text-muted">No tienes hábitos aún</h5>
-      <p class="text-muted mb-4">
-        Crea tu primer hábito para comenzar tu jornada de mejora personal
-      </p>
+      <p class="text-muted mb-4">Crea tu primer hábito para comenzar tu jornada de mejora personal</p>
       <a href="{{ url_for('habits.create') }}" class="btn btn-primary rounded-pill">
         <i class="bi bi-plus-circle"></i> Crear Primer Hábito
       </a>
@@ -100,41 +323,42 @@
 {% endif %}
 
 <script>
-  /**
-   * HU-9: Refuerzo positivo al completar
-   */
-  function markCompleted(button, habitId) {
-    // Mensaje corto, no intrusivo
-    if (window.appUtils && typeof window.appUtils.showToast === "function") {
-      window.appUtils.showToast(
-        "¡Buen trabajo! Hábito marcado como completado 🎉",
-        "success",
-        2500
-      );
-    } else {
-      console.log("Hábito completado:", habitId);
-    }
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+    el.setAttribute('role', 'alert');
+    el.setAttribute('aria-live', 'assertive');
+    el.setAttribute('aria-atomic', 'true');
+    el.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    container.appendChild(el);
+    const toast = new bootstrap.Toast(el, { delay: 1600 });
+    toast.show();
+    toast._element.addEventListener('hidden.bs.toast', () => el.remove());
+  }
 
-    const card = button.closest(".card");
-    if (card) {
-      card.classList.add("pulse-once");
-      setTimeout(() => card.classList.remove("pulse-once"), 600);
-
-      const headerActions = card.querySelector(".header-actions");
-      if (headerActions && !headerActions.querySelector(".badge.bg-success")) {
-        const badge = document.createElement("span");
-        badge.className = "badge bg-success rounded-pill";
-        badge.innerHTML = '<i class="bi bi-check-circle"></i> Completado';
-        headerActions.prepend(badge);
+  async function markCompleted(habitId) {
+    try {
+      const res = await fetch(`${window.location.origin}/progress/complete/${habitId}`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'fetch',
+          'X-CSRF-Token': '{{ csrf_token }}'
+        }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast('¡Hábito marcado como completado!', 'success');
+        setTimeout(() => window.location.reload(), 800);
+      } else {
+        showToast(data.error || 'Error al completar hábito', 'danger');
       }
+    } catch (e) {
+      showToast('Error de red', 'danger');
     }
-
-    button.disabled = true;
-    button.classList.remove("btn-outline-success");
-    button.classList.add("btn-success");
-    button.innerHTML = '<i class="bi bi-check-circle"></i> Completado';
-
-    return false;
   }
 </script>
+
+<!-- Toast container -->
+<div id="toasts" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
 {% endblock %}

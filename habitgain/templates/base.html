@@ -27,15 +27,16 @@
         </button>
         <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
+                {% set _path = request.path %}
                 <li class="nav-item">
-                    <a class="btn btn-ghost" href="{{ url_for('explore.home') }}">
-                        <i class="bi bi-compass"></i> Explore
+                    <a class="btn {{ 'btn-primary-soft' if _path.startswith('/explore') else 'btn-ghost' }}" href="{{ url_for('explore.home') }}">
+                        <i class="bi bi-compass"></i> Explorar
                     </a>
                 </li>
                 <li class="nav-item">
                     <!-- usa el endpoint inyectado por la app -->
-                    <a class="btn btn-ghost" href="{{ panel_url }}">
-                        <i class="bi bi-grid"></i> Panel
+                    <a class="btn {{ 'btn-primary-soft' if _path.startswith('/progress') else 'btn-ghost' }}" href="{{ panel_url }}">
+                        <i class="bi bi-grid"></i> Activos
                     </a>
                 </li>
                 <li class="nav-item">

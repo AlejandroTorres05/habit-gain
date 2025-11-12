@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from ..models import User, count_active_habits_from_db
+from ..models import User, Database, count_active_habits_from_db
 from ..auth import USERS as AUTH_USERS  # login en memoria heredado
 
 import secrets
@@ -86,7 +86,7 @@ def edit():
         "name": session["user"].get("name", ""),
     }
 
-    # Conteo de hábitos: ahora desde BD, no desde USER_HABITS
+    # Conteo de hábitos basado en BD para coherencia
     habits_count = count_active_habits_from_db(user_email)
 
     csrf_token = _get_csrf_token()

@@ -168,3 +168,55 @@ section .section-title {
     transform: translateY(-2px);
     box-shadow: 0 16px 40px rgba(30, 60, 120, .15)
 }
+
+/* ===== Progress enhancements ===== */
+.progress {
+    background-color: rgba(0,0,0,.06);
+    overflow: hidden;
+    border-radius: 999px;
+}
+.progress-animated .progress-bar {
+    transition: width .6s ease;
+}
+
+/* Circular progress (donut) */
+.progress-ring {
+    --size: 140px;
+    --track: #e9e8ff;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    position: relative;
+    background:
+      conic-gradient(#7c71ff calc(var(--p,0) * 1%), var(--track) 0);
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow);
+}
+.progress-ring::after {
+    content: "";
+    width: calc(var(--size) - 28px);
+    height: calc(var(--size) - 28px);
+    background: rgba(255,255,255,.8);
+    border-radius: 50%;
+    backdrop-filter: blur(6px);
+}
+.progress-ring .progress-value {
+    position: absolute;
+    font-weight: 800;
+    font-size: 1.35rem;
+}
+.progress-ring .progress-caption {
+    position: absolute;
+    bottom: 12px;
+    font-size: .75rem;
+    color: var(--muted);
+}
+
+/* Weekly card */
+.weekly-card .metric {
+    display: grid;
+    gap: .1rem;
+}
+.weekly-card .metric .label{font-size:.75rem;color:var(--muted)}
+.weekly-card .metric .value{font-weight:700}
