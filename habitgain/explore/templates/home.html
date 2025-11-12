@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1 class="mb-2 text-gradient">Explorar</h1>
-<p class="section-kicker mb-4">Descubre tus categorías y hábitos activos</p>
+<p class="section-kicker mb-4">Descubre categorías y hábitos sugeridos</p>
 
 <div class="row g-4">
     <div class="col-12 col-lg-6">
@@ -35,41 +35,19 @@
     </div>
 
     <div class="col-12 col-lg-6">
-        <div class="card glass p-3 shadow-hover">
-            <div class="section-title">
-                <i class="bi bi-lightning-charge text-primary fs-4"></i>
-                <h5 class="m-0">Hábitos activos</h5>
+        <div class="card glass p-3 shadow-hover h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="section-title">
+                    <i class="bi bi-lightning-charge text-primary fs-4"></i>
+                    <h5 class="m-0">¿Listo para empezar?</h5>
+                </div>
+                <p class="text-muted mb-3">Crea tu propio hábito o explora el catálogo para inspirarte.</p>
             </div>
-            {% if habits %}
-            <ul class="list-group list-clean">
-                {% for h in habits %}
-                <li class="list-group-item py-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold">{{ h.name }}</div>
-                            {% if h.short_desc %}
-                            <div class="small text-muted">{{ h.short_desc }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="d-flex gap-2 align-items-center">
-                            <span class="badge text-bg-success rounded-pill px-3 py-2">
-                                <i class="bi bi-check2-circle"></i> Activo
-                            </span>
-                            <form method="POST" action="{{ url_for('explore.remove_habit', habit_id=h.id) }}" class="d-inline"
-                                  onsubmit="return confirm('¿Estás seguro de que quieres eliminar este hábito?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar hábito">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <div class="text-muted">Aún no tienes hábitos activos. Crea el primero y finge que te levantas a las 5 a.m.
+            <div>
+                <a class="btn btn-primary w-100" href="{{ url_for('habits.create') }}">
+                    <i class="bi bi-plus-circle"></i> Crear hábito
+                </a>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>

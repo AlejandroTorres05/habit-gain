@@ -94,9 +94,7 @@ def _require_login():
 def home():
     if not _require_login():
         return redirect(url_for("auth.login"))
-    email = session["user"]["email"]
     categories = Category.all()
-    user_habits = Habit.list_active_by_owner(email)
 
     # Obtener todos los hábitos sugeridos
     all_suggested_habits = []
@@ -105,7 +103,6 @@ def home():
 
     return render_template("home.html",
                          categories=categories,
-                         habits=user_habits,
                          suggested_habits=all_suggested_habits)
 
 
@@ -117,18 +114,15 @@ explore_bp.add_url_rule("/", endpoint="explore", view_func=home)
 def category(category_id: int):
     if not _require_login():
         return redirect(url_for("auth.login"))
-    email = session["user"]["email"]
     cat = Category.get_by_id(category_id)
     if not cat:
         abort(404)
-    user_habits = Habit.list_active_by_owner_and_category(email, category_id)
 
     # Obtener hábitos sugeridos para esta categoría
     suggested_habits = HABIT_CATALOG.get(category_id, [])
 
     return render_template("category.html",
                          category=cat,
-                         habits=user_habits,
                          suggested_habits=suggested_habits)
 
 

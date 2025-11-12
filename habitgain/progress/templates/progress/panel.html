@@ -9,6 +9,9 @@
   <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}">
     <i class="bi bi-plus-circle"></i> Nuevo Hábito
   </a>
+  <a class="btn btn-ghost ms-2" href="{{ url_for('explore.home') }}">
+    <i class="bi bi-compass"></i> Explorar plantillas
+  </a>
 </div>
 
 {% set percent = percent if percent is defined else (((completed / (total if total>0 else 1)) * 100) | round | int) %}
