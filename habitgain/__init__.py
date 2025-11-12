@@ -11,6 +11,7 @@ from .habits import habits_bp
 from .progress import progress_bp
 from .profile import profile_bp
 from .manage import manage_bp
+from .admin import admin_bp
 from .models import Database
 
 # SECRET_KEY configurable por entorno, con fallback dev
@@ -58,5 +59,6 @@ def create_app():
     app.register_blueprint(progress_bp, url_prefix="/progress")
     app.register_blueprint(profile_bp,  url_prefix="/profile")
     app.register_blueprint(manage_bp,   url_prefix="/manage")
+    app.register_blueprint(admin_bp,    url_prefix="/admin")
 
     return app

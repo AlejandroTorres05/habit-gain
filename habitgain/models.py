@@ -65,6 +65,7 @@ class Database:
         self._ensure_column(conn, "users", "name", "TEXT")
         self._ensure_column(conn, "users", "password_hash", "TEXT")
         self._ensure_column(conn, "users", "password_salt", "TEXT")
+        self._ensure_column(conn, "users", "role", "TEXT DEFAULT 'user'")
         self._maybe_create_index(conn, "users", "idx_users_email", "email")
         self._migrate_users_passwords(conn)
         self._backfill_missing_user_hashes(conn)
@@ -400,10 +401,79 @@ class User:
         conn = db.get_connection()
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, email, name, password_hash, password_salt FROM users WHERE email=?", (email,))
+            "SELECT id, email, name, password_hash, password_salt, role FROM users WHERE email=?", (email,))
         row = cur.fetchone()
         conn.close()
         return dict(row) if row else None
+
+    @staticmethod
+    def get_by_id(user_id: int) -> Optional[Dict[str, Any]]:
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, email, name, role FROM users WHERE id=?", (user_id,))
+        row = cur.fetchone()
+        conn.close()
+        return dict(row) if row else None
+
+    @staticmethod
+    def list_all() -> List[Dict[str, Any]]:
+        """HU-16: Listar todos los usuarios para panel admin"""
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, email, name, role FROM users ORDER BY id DESC")
+        rows = cur.fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+
+    @staticmethod
+    def create_user(email: str, name: str, password: str, role: str = "user") -> int:
+        """HU-16: Crear usuario desde panel admin"""
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        pack = _hash_password(password)
+        cols_users = db._get_table_columns(conn, "users")
+
+        if "password" in cols_users:
+            cur.execute(
+                "INSERT INTO users (email, name, password, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, ?)",
+                (email, name, "changeme", pack["hash"], pack["salt"], role),
+            )
+        else:
+            cur.execute(
+                "INSERT INTO users (email, name, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?)",
+                (email, name, pack["hash"], pack["salt"], role),
+            )
+        conn.commit()
+        new_id = cur.lastrowid
+        conn.close()
+        return int(new_id)
+
+    @staticmethod
+    def update_user(user_id: int, email: str, name: str, role: str) -> None:
+        """HU-16: Actualizar usuario desde panel admin"""
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE users SET email=?, name=?, role=? WHERE id=?",
+            (email, name, role, user_id),
+        )
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def delete_user(user_id: int) -> None:
+        """HU-16: Eliminar usuario desde panel admin"""
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM users WHERE id=?", (user_id,))
+        conn.commit()
+        conn.close()
 
     @staticmethod
     def update_name(email: str, new_name: str) -> None:
@@ -651,6 +721,48 @@ class Habit:
         rows = cur.fetchall()
         conn.close()
         return [dict(r) for r in rows]
+
+    @staticmethod
+    def list_all_habits() -> List[Dict[str, Any]]:
+        """HU-16: Listar todos los hábitos para panel admin"""
+        db = Database()
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, owner_email, name, active, short_desc, category_id, frequency, habit_base_id
+            FROM habits
+            ORDER BY id DESC
+            """
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+
+    @staticmethod
+    def admin_update_habit(habit_id: int, name: str, short_desc: str, owner_email: str, active: bool) -> int:
+        """HU-16: Actualizar hábito desde panel admin"""
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                UPDATE habits
+                SET name=?, short_desc=?, owner_email=?, active=?
+                WHERE id=?
+                """,
+                (name, short_desc, owner_email, 1 if active else 0, habit_id),
+            )
+            conn.commit()
+            return int(cur.rowcount or 0)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def admin_delete_habit(habit_id: int) -> None:
+        """HU-16: Eliminar hábito desde panel admin"""
+        Habit.delete(habit_id)
 
 
 # -----------------------

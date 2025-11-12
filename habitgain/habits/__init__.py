@@ -116,7 +116,17 @@ def create():
                 )
 
         # Crear en DB (category_id por defecto 1 si no se especifica)
-        new_id = Habit.create(email=user, name=nombre, short_desc=descripcion, category_id=category_id, frequency=frequency, habit_base_id=base_id_int, icon=icon or None, frequency_detail=frequency_detail)
+        try:
+            new_id = Habit.create(email=user, name=nombre, short_desc=descripcion, category_id=category_id, frequency=frequency, habit_base_id=base_id_int, icon=icon or None, frequency_detail=frequency_detail)
+        except Exception as e:
+            flash(f"Error al crear el hábito: {str(e)}", "danger")
+            completed_today = set(Completion.completed_today_ids(user))
+            habitos_existentes = [h for h in Habit.list_active_by_owner(user) if h.get("id") not in completed_today]
+            return render_template(
+                "habits/new.html",
+                habitos_existentes=habitos_existentes,
+                categorias=_get_categorias()
+            )
 
         # Mensaje de éxito personalizado
         if habit_base_id:
