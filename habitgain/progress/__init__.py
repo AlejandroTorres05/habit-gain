@@ -8,6 +8,13 @@ progress_bp = Blueprint("progress", __name__, template_folder="templates")
 
 @progress_bp.route("/panel")
 def panel():
+    """
+    Panel de hábitos diario basado en la BD.
+
+    - Lista hábitos activos del usuario (tabla habits).
+    - completed/total por ahora solo cuenta activos; cuando tengas check-ins,
+      aquí se calcula en serio.
+    """
     user = (session.get("user") or {}).get("email")
     if not user:
         return redirect(url_for("auth.login"))

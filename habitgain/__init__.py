@@ -1,5 +1,6 @@
 # habitgain/__init__.py
 
+import os
 from flask import Flask, url_for
 from werkzeug.routing import BuildError
 
@@ -12,10 +13,13 @@ from .profile import profile_bp
 from .manage import manage_bp
 from .models import Database
 
+# SECRET_KEY configurable por entorno, con fallback dev
+SECRET_KEY = os.environ.get("HABITGAIN_SECRET_KEY", "dev-secret")
+
 
 def create_app():
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = "dev-secret"  # reemplazar en prod
+    app.config["SECRET_KEY"] = SECRET_KEY  # reemplazar en prod por algo serio
 
     # DB init + seed
     db = Database()
@@ -27,11 +31,11 @@ def create_app():
     def inject_template_vars():
         # intenta resolver una URL válida para "Panel" entre varios endpoints comunes
         candidates = [
-            "progress.panel",  # <-- Agregado
+            "progress.panel",          # panel actual
             "manage.home", "manage.index",
             "panel.home", "panel.index",
             "dashboard.home", "dashboard.index",
-            "explore.home"  # fallback si no hay panel
+            "explore.home",            # fallback si no hay panel
         ]
         panel_url = url_for("core.home")
         for ep in candidates:

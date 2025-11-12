@@ -13,11 +13,11 @@ class Database:
         self.db_name = db_name
 
     def get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_name, timeout=20.0, check_same_thread=False)
+        conn = sqlite3.connect(self.db_name, timeout=20.0,
+                               check_same_thread=False)
         conn.row_factory = sqlite3.Row
-        # Habilitar WAL mode para mejor concurrencia
+        # Mejor concurrencia en SQLite
         conn.execute("PRAGMA journal_mode=WAL")
-        # Reducir el tiempo de espera para locks
         conn.execute("PRAGMA busy_timeout=20000")
         return conn
 
@@ -62,14 +62,12 @@ class Database:
         conn.commit()
 
         # ---- Migraciones users ----
-        # por si alguna DB vieja no tiene
         self._ensure_column(conn, "users", "name", "TEXT")
         self._ensure_column(conn, "users", "password_hash", "TEXT")
         self._ensure_column(conn, "users", "password_salt", "TEXT")
         self._maybe_create_index(conn, "users", "idx_users_email", "email")
-        # intenta migrar desde columnas viejas
         self._migrate_users_passwords(conn)
-        self._backfill_missing_user_hashes(conn)   # y completa donde falte
+        self._backfill_missing_user_hashes(conn)
 
         # ---- Migraciones habits ----
         self._ensure_column(conn, "habits", "owner_email", "TEXT")
@@ -84,10 +82,14 @@ class Database:
         self._ensure_column(conn, "habits", "why_works", "TEXT")
         self._ensure_column(conn, "habits", "icon", "TEXT")
         self._ensure_column(conn, "habits", "habit_base_id", "INTEGER")
+
         self._migrate_owner_email(conn)
         self._maybe_create_index(
             conn, "habits", "idx_habits_owner_email", "owner_email")
         self._maybe_create_index(conn, "habits", "idx_habits_active", "active")
+        # Para validación de duplicados eficiente
+        self._maybe_create_index(
+            conn, "habits", "idx_habits_owner_name", "owner_email, name")
 
         # ---- Tabla de completados (habit_completions) ----
         cur.execute(
@@ -142,8 +144,13 @@ class Database:
         return any(r["name"] == index_name for r in rows)
 
     def _maybe_create_index(self, conn: sqlite3.Connection, table: str, idx_name: str, col: str) -> None:
-        if not self._has_column(conn, table, col):
-            return
+        """
+        Crea el índice si no existe. Soporta compuestos con "col1, col2".
+        """
+        cols = [c.strip() for c in col.split(",")]
+        for c in cols:
+            if not self._has_column(conn, table, c):
+                return
         if not self._index_exists(conn, table, idx_name):
             cur = conn.cursor()
             cur.execute(
@@ -153,7 +160,7 @@ class Database:
     def _migrate_users_passwords(self, conn: sqlite3.Connection) -> None:
         """
         Si existen columnas legacy en users, migra a password_hash/password_salt.
-        Legacy posibles: password (plaintext), passwd (plaintext), pwd_hash (ya hash sin sal).
+        Legacy posibles: password (plaintext), passwd (plaintext), pwd_hash (hash sin sal).
         """
         cols = self._get_table_columns(conn, "users")
         legacy_cols = [c for c in ["password",
@@ -162,21 +169,18 @@ class Database:
             return
         cur = conn.cursor()
 
-        # Prefiere 'pwd_hash' si existe; luego 'password'/'passwd'
         source = "pwd_hash" if "pwd_hash" in legacy_cols else (
             "password" if "password" in legacy_cols else "passwd")
 
-        # Para cada usuario sin hash, leer el valor legacy y convertirlo a PBKDF2+salt.
         cur.execute(
-            f"SELECT id, {source} FROM users WHERE (password_hash IS NULL OR password_hash = '')")
+            f"SELECT id, {source} FROM users WHERE (password_hash IS NULL OR password_hash = '')"
+        )
         rows = cur.fetchall()
         for r in rows:
             uid = r["id"]
             legacy_val = r[source] or ""
             if not legacy_val:
-                # si está vacío, se completará en _backfill_missing_user_hashes
                 continue
-            # Si la fuente era 'pwd_hash' sin sal, no podemos reusar tal cual; lo rehash con sal.
             pack = _hash_password(legacy_val)
             cur.execute(
                 "UPDATE users SET password_hash=?, password_salt=? WHERE id=?",
@@ -187,14 +191,15 @@ class Database:
     def _backfill_missing_user_hashes(self, conn: sqlite3.Connection) -> None:
         """
         A cualquier fila que siga sin password_hash/password_salt le asigna un hash de 'changeme'.
-        Mejor tener algo seguro que un null que rompa todo.
         """
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT id FROM users
             WHERE (password_hash IS NULL OR password_hash = '')
                OR (password_salt IS NULL OR password_salt = '')
-        """)
+            """
+        )
         rows = cur.fetchall()
         if not rows:
             return
@@ -218,19 +223,28 @@ class Database:
             return
         legacy_col = legacy_candidates[0]
         cur = conn.cursor()
-        cur.execute(f"""
+        cur.execute(
+            f"""
             UPDATE habits
                SET owner_email = {legacy_col}
              WHERE (owner_email IS NULL OR owner_email = '')
                AND {legacy_col} IS NOT NULL
                AND {legacy_col} <> ''
-        """)
+            """
+        )
         conn.commit()
 
     def seed_data(self) -> None:
-        """Seed mínimo para categorías."""
+        """
+        Seed mínimo para:
+        - categorías base
+        - usuario demo
+        - algunos hábitos demo para ese usuario
+        """
         conn = self.get_connection()
         cur = conn.cursor()
+
+        # 1) Categorías base
         cur.execute("SELECT COUNT(*) AS c FROM categories")
         count = cur.fetchone()["c"]
         if count == 0:
@@ -242,7 +256,80 @@ class Database:
                     ("Learning", "book-open"),
                 ],
             )
-            conn.commit()
+
+        # Detectar columnas actuales de users (por compatibilidad con schema viejo)
+        cols_users = self._get_table_columns(conn, "users")
+
+        # 2) Usuario demo
+        demo_email = "demo@habitgain.local"
+        cur.execute("SELECT id FROM users WHERE email = ?", (demo_email,))
+        row = cur.fetchone()
+        if row is None:
+            pack = _hash_password("demo123")
+            if "password" in cols_users:
+                # Schema legacy con columna password NOT NULL
+                cur.execute(
+                    """
+                    INSERT INTO users (email, name, password, password_hash, password_salt)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (demo_email, "Usuario Demo", "changeme",
+                     pack["hash"], pack["salt"]),
+                )
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO users (email, name, password_hash, password_salt)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (demo_email, "Usuario Demo", pack["hash"], pack["salt"]),
+                )
+
+        # 3) Hábitos demo para ese usuario (si no tiene ninguno)
+        cur.execute(
+            "SELECT COUNT(*) AS c FROM habits WHERE owner_email = ?",
+            (demo_email,),
+        )
+        hcount = cur.fetchone()["c"]
+
+        if hcount == 0:
+            # buscar ids de categorías para asignar
+            cur.execute("SELECT id, name FROM categories")
+            cats = {row["name"]: row["id"] for row in cur.fetchall()}
+
+            habits_seed = [
+                ("Beber 8 vasos de agua",
+                 "Mantente hidratado durante el día",
+                 cats.get("Health")),
+                ("Planificar el día",
+                 "Define tus 3 prioridades principales",
+                 cats.get("Productivity")),
+                ("Leer 20 páginas",
+                 "Progreso constante en tus lecturas",
+                 cats.get("Learning")),
+            ]
+
+            for name, short_desc, cat_id in habits_seed:
+                cur.execute(
+                    """
+                    INSERT INTO habits
+                    (owner_email, name, active, short_desc, category_id,
+                     frequency, long_desc, why_works, icon)
+                    VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        demo_email,
+                        name,
+                        short_desc,
+                        cat_id or 1,
+                        "daily",
+                        "",
+                        "",
+                        "🎯",
+                    ),
+                )
+
+        conn.commit()
         conn.close()
 
 
@@ -288,12 +375,24 @@ class User:
         row = cur.fetchone()
         if row is None:
             pack = _hash_password(provisional_password)
-            cur.execute(
-                "INSERT INTO users (email, name, password_hash, password_salt) VALUES (?, ?, ?, ?)",
-                (email, name, pack["hash"], pack["salt"]),
-            )
+            # Mirar columnas actuales para soportar schema legacy
+            cols_users = db._get_table_columns(conn, "users")
+            if "password" in cols_users:
+                cur.execute(
+                    """
+                    INSERT INTO users (email, name, password, password_hash, password_salt)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (email, name, "changeme", pack["hash"], pack["salt"]),
+                )
+            else:
+                cur.execute(
+                    "INSERT INTO users (email, name, password_hash, password_salt) VALUES (?, ?, ?, ?)",
+                    (email, name, pack["hash"], pack["salt"]),
+                )
             conn.commit()
         conn.close()
+
 
     @staticmethod
     def get_by_email(email: str) -> Optional[Dict[str, Any]]:
@@ -450,9 +549,30 @@ class Habit:
         cur = conn.cursor()
         cur.execute(
             "SELECT COUNT(*) AS c FROM habits WHERE owner_email=? AND active=1", (email,))
-        (c,) = cur.fetchone()
+        row = cur.fetchone()
         conn.close()
-        return int(c or 0)
+        return int(row["c"] if row else 0)
+
+    @staticmethod
+    def exists_by_name(email: str, name: str) -> bool:
+        """True si ya existe un hábito con ese nombre para ese usuario (case/espacios-insensible)."""
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT 1
+                  FROM habits
+                 WHERE owner_email = ?
+                   AND lower(trim(name)) = lower(trim(?))
+                 LIMIT 1
+                """,
+                (email, name),
+            )
+            return cur.fetchone() is not None
+        finally:
+            conn.close()
 
     @staticmethod
     def create(email: str, name: str, short_desc: Optional[str] = None, category_id: Optional[int] = None, *, frequency: str = "daily", habit_base_id: Optional[int] = None, icon: Optional[str] = None, frequency_detail: Optional[str] = None) -> int:
@@ -515,7 +635,7 @@ class Habit:
             conn.close()
 
     @staticmethod
-    def list_active_by_owner_and_category(email: str, category_id: int):
+    def list_active_by_owner_and_category(email: str, category_id: int) -> List[Dict[str, Any]]:
         db = Database()
         conn = db.get_connection()
         cur = conn.cursor()
@@ -654,4 +774,3 @@ class Completion:
         (c,) = cur.fetchone()
         conn.close()
         return int(c or 0)
-

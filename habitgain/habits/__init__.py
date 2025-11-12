@@ -9,19 +9,19 @@ def _user_email():
     return (session.get("user") or {}).get("email")
 
 
-
 # HU5: Crear nuevo hábito con Habit Stacking
-@habits_bp.route("/new", methods=["GET", "POST"]) 
+@habits_bp.route("/new", methods=["GET", "POST"])
 def create():
     user = _user_email()
     if not user:
         flash("Debes iniciar sesión primero", "warning")
         return redirect(url_for("auth.login"))
-    
+
     if request.method == "POST":
         user = _user_email()
         # Obtener datos del formulario
-        nombre = (request.form.get("nombre") or request.form.get("name") or "").strip()
+        nombre = (request.form.get("nombre")
+                  or request.form.get("name") or "").strip()
         descripcion = (request.form.get("descripcion") or "").strip()
         icon = (request.form.get("icon") or request.form.get("emoji") or "").strip()
         habit_base_id = request.form.get("habit_base_id") or request.form.get("stack_after") or ""
@@ -134,22 +134,22 @@ def create():
             flash(f'¡Hábito "{nombre}" creado exitosamente!', "success")
 
         return redirect(url_for("progress.panel"))
-    
+
     # GET - Mostrar formulario
     # Habitos existentes desde DB (excluir completados hoy para anclar)
     completed_today = set(Completion.completed_today_ids(user))
     habitos_existentes = [h for h in Habit.list_active_by_owner(user) if h.get("id") not in completed_today]
     categorias = _get_categorias()
-    
+
     return render_template(
         "habits/new.html",
         habitos_existentes=habitos_existentes,
-        categorias=categorias
+        categorias=categorias,
     )
 
 
 # AJAX: validar duplicado de nombre
-@habits_bp.route("/validate-name", methods=["GET"]) 
+@habits_bp.route("/validate-name", methods=["GET"])
 def validate_name():
     user = _user_email()
     if not user:
@@ -185,13 +185,13 @@ def _get_categorias():
 def get_user_habits_organized(user):
     # No usado por el panel actual; mantenido para compatibilidad si se requiere.
     habitos = Habit.list_by_owner(user)
-    
+
     habitos_independientes = []
     habitos_vinculados = {}
-    
+
     for habito in habitos:
         habit_base_id = habito.get("habit_base_id") or habito.get("stack_after")
-        
+
         if habit_base_id:
             # Es un hábito vinculado
             try:
@@ -205,7 +205,7 @@ def get_user_habits_organized(user):
         else:
             # Es un hábito independiente
             habitos_independientes.append(habito)
-    
+
     return habitos_independientes, habitos_vinculados
 
 
@@ -213,17 +213,19 @@ def get_progress_stats(user):
     habitos = Habit.list_by_owner(user)
     total_habitos = len(habitos)
     completados_hoy = 0  # este helper queda como placeholder; el panel usa Completion en DB
-    
+
     return {
         "total": total_habitos,
         "completados": completados_hoy,
-        "porcentaje": int((completados_hoy / total_habitos * 100) if total_habitos > 0 else 0)
+        "porcentaje": int(
+            (completados_hoy / total_habitos * 100) if total_habitos > 0 else 0
+        ),
     }
 
 
-#H11:
+# HU-11: eliminar hábito con confirmación
 @habits_bp.route("/<int:habit_id>/delete", methods=["GET", "POST"])
-def delete(habit_id):
+def delete(habit_id: int):
     """
     Vista dedicada para confirmar y eliminar un hábito (HU-11).
     GET: mostrar página de confirmación.

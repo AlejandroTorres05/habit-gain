@@ -31,7 +31,9 @@ def edit():
 
     # Asegura que exista registro en BD para operar perfil
     User.ensure_exists(
-        email=user_email, name=session["user"].get("name", "User"))
+        email=user_email,
+        name=session["user"].get("name", "User"),
+    )
 
     if request.method == "POST":
         # CSRF check
@@ -80,10 +82,17 @@ def edit():
 
     # GET
     user_data = User.get_by_email(user_email) or {
-        "email": user_email, "name": session["user"].get("name", "")}
+        "email": user_email,
+        "name": session["user"].get("name", ""),
+    }
 
     # Conteo de hábitos basado en BD para coherencia
     habits_count = count_active_habits_from_db(user_email)
 
     csrf_token = _get_csrf_token()
-    return render_template("profile/edit.html", user=user_data, habits_count=habits_count, csrf_token=csrf_token)
+    return render_template(
+        "profile/edit.html",
+        user=user_data,
+        habits_count=habits_count,
+        csrf_token=csrf_token,
+    )
