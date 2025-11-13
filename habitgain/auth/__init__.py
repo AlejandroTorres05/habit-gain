@@ -1,10 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 import re
+from ..models import User, OnboardingStatus
 
 auth_bp = Blueprint("auth", __name__, template_folder="templates")
-
-# MVP users in memory (se puede migrar a DB después)
-USERS = {"demo@habit.com": {"password": "123456", "name": "Demo"}}
 
 # Funciones auxiliares de validación
 def is_valid_email(email):
@@ -17,8 +15,8 @@ def is_valid_password(password):
     return len(password) >= 6
 
 def email_exists(email):
-    """Verifica si el email ya está registrado"""
-    return email in USERS
+    """Verifica si el email ya está registrado en la base de datos"""
+    return User.get_by_email(email) is not None
 
 # Ruta Login
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -26,16 +24,17 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         pwd = request.form.get("password", "")
-        
-        user = USERS.get(email)
-        if user and user["password"] == pwd:
-            session["user"] = {"email": email, "name": user["name"]}
+
+        # Verificar credenciales usando la base de datos
+        user = User.verify_password(email, pwd)
+        if user:
+            session["user"] = {"email": email, "name": user.get("name", "Usuario")}
             flash("¡Bienvenido/a de nuevo!", "success")
             return redirect(url_for("progress.panel"))
-        
+
         flash("Correo o contraseña incorrectos", "danger")
         return render_template("auth/login.html", title="Iniciar sesión", email=email)
-    
+
     return render_template("auth/login.html", title="Iniciar sesión")
 
 # Ruta register
@@ -82,17 +81,26 @@ def register():
                 email=email
             )
         
-        # Registrar usuario (todo esta bien)
-        USERS[email] = {
-            "password": password,
-            "name": name
-        }
-        
-        # Iniciar sesión automáticamente
-        session["user"] = {"email": email, "name": name}
-        
-        flash("¡Cuenta creada exitosamente! Bienvenido/a a HabitFlow.", "success")
-        return redirect(url_for("progress.panel"))
+        # Registrar usuario en la base de datos
+        try:
+            User.create_user(email, name, password, role="user")
+
+            # HU-18: Crear estado de onboarding para nuevo usuario
+            OnboardingStatus.create_status(email)
+
+            # Iniciar sesión automáticamente
+            session["user"] = {"email": email, "name": name}
+
+            flash("¡Cuenta creada exitosamente! Bienvenido/a a HabitGain.", "success")
+            return redirect(url_for("progress.panel"))
+        except Exception as e:
+            flash(f"Error al crear la cuenta: {str(e)}", "danger")
+            return render_template(
+                "auth/register.html",
+                title="Crear cuenta",
+                name=name,
+                email=email
+            )
     
     # GET: Mostrar formulario
     return render_template("auth/register.html", title="Crear cuenta")

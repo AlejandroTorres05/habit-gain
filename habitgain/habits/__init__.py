@@ -87,6 +87,7 @@ def create():
 
         # Parse habit_base_id si viene
         base_id_int = None
+        base_habit_name = None  # Guardar el nombre para el mensaje de éxito
         if habit_base_id:
             try:
                 base_id_int = int(habit_base_id)
@@ -114,6 +115,8 @@ def create():
                     habitos_existentes=habitos_existentes,
                     categorias=_get_categorias()
                 )
+            # Guardar el nombre del hábito base para el mensaje de éxito
+            base_habit_name = base_h.get("name")
 
         # Crear en DB (category_id por defecto 1 si no se especifica)
         try:
@@ -128,18 +131,9 @@ def create():
                 categorias=_get_categorias()
             )
 
-        # Mensaje de éxito personalizado
-        if habit_base_id:
-            try:
-                base_id = int(habit_base_id)
-                habit_base = Habit.get_by_id(base_id)
-                if habit_base:
-                    base_name = habit_base.get("name")
-                    flash(f'¡Hábito "{nombre}" creado y vinculado a "{base_name}"!', "success")
-                else:
-                    flash(f'¡Hábito "{nombre}" creado exitosamente!', "success")
-            except (ValueError, TypeError):
-                flash(f'¡Hábito "{nombre}" creado exitosamente!', "success")
+        # Mensaje de éxito personalizado (sin consultar la BD de nuevo)
+        if base_habit_name:
+            flash(f'¡Hábito "{nombre}" creado y vinculado a "{base_habit_name}"!', "success")
         else:
             flash(f'¡Hábito "{nombre}" creado exitosamente!', "success")
 
