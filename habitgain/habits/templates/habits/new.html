@@ -209,6 +209,20 @@
     const select = document.getElementById('habit_base_id');
     if (select.value) updatePreview();
   });
+
+  // Ensure form submission completes and redirects properly
+  (function() {
+    const form = document.getElementById('habitForm');
+    if (form) {
+      form.addEventListener('submit', function() {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = 'Creando... <span class="spinner-border spinner-border-sm ms-2"></span>';
+        }
+      });
+    }
+  })();
 </script>
 
 {% endblock %}

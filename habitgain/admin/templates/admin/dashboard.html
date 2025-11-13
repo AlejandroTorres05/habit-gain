@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="fw-bold">Panel de Administración</h1>
+      <p class="text-muted">Gestión completa de usuarios y hábitos del sistema</p>
+    </div>
+    <span class="badge bg-danger rounded-pill">ADMIN</span>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card glass">
+        <div class="card-body">
+          <h3 class="mb-0">{{ total_users }}</h3>
+          <p class="text-muted mb-0">Usuarios totales</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card glass">
+        <div class="card-body">
+          <h3 class="mb-0">{{ total_habits }}</h3>
+          <p class="text-muted mb-0">Hábitos totales</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card glass">
+        <div class="card-body">
+          <h3 class="mb-0">{{ active_habits }}</h3>
+          <p class="text-muted mb-0">Hábitos activos</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card glass">
+        <div class="card-body">
+          <h3 class="mb-0">{{ admin_count }}</h3>
+          <p class="text-muted mb-0">Administradores</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones rápidas -->
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card glass h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-people"></i> Gestión de Usuarios
+          </h5>
+          <p class="card-text">Administra los usuarios del sistema, crea, edita o elimina cuentas.</p>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.users_list') }}" class="btn btn-primary">Ver usuarios</a>
+            <a href="{{ url_for('admin.users_create') }}" class="btn btn-outline-primary">Crear usuario</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card glass h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-list-check"></i> Gestión de Hábitos
+          </h5>
+          <p class="card-text">Administra todos los hábitos del sistema, edita o elimina según sea necesario.</p>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.habits_list') }}" class="btn btn-primary">Ver hábitos</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

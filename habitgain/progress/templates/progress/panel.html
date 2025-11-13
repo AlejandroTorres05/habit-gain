@@ -1,18 +1,112 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- HU-18: Data attribute para indicar si se necesita onboarding -->
+<body data-needs-onboarding="{{ 'true' if needs_onboarding else 'false' }}"></body>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
     <h2 class="mb-1">Panel de Hábitos</h2>
-    <p class="text-muted mb-0">Progreso de hoy: <strong>{{ completed }}</strong> de <strong>{{ total }}</strong>
+    <p class="text-muted mb-0" data-onboarding="habits-list">Progreso de hoy: <strong>{{ completed }}</strong> de <strong>{{ total }}</strong>
       completados</p>
   </div>
-  <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}">
+  <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}" data-onboarding="create-habit">
     <i class="bi bi-plus-circle"></i> Nuevo Hábito
   </a>
   <a class="btn btn-ghost ms-2" href="{{ url_for('explore.home') }}">
     <i class="bi bi-compass"></i> Explorar plantillas
   </a>
 </div>
+
+<!-- HU-17 CDA3: Banner motivacional dinámico con auto-dismiss -->
+{% if motivation_message %}
+<!-- Botón para mostrar el mensaje nuevamente (oculto inicialmente) -->
+<button class="motivation-toggle hidden" id="motivationToggle" onclick="showMotivationBanner()">
+  <span>💡</span>
+  <span>Ver mensaje del día</span>
+</button>
+
+<div class="motivation-banner" id="motivationBanner">
+  <button class="motivation-close" onclick="dismissMotivationBanner()" title="Cerrar">×</button>
+  <div class="d-flex align-items-center">
+    <span class="motivation-icon">{{ motivation_message.icon }}</span>
+    <div class="flex-grow-1">
+      <div class="motivation-text">
+        <strong>{{ motivation_message.title }}</strong> {{ motivation_message.text }}
+      </div>
+      <div class="motivation-subtext">{{ motivation_message.subtext }}</div>
+    </div>
+  </div>
+  <!-- Barra de progreso para indicar auto-dismiss -->
+  <div class="motivation-progress"></div>
+</div>
+
+<script>
+  // HU-17: Auto-dismiss del banner motivacional después de 10 segundos
+  (function() {
+    const banner = document.getElementById('motivationBanner');
+    const toggle = document.getElementById('motivationToggle');
+    let autoDismissTimeout;
+
+    // Configurar auto-dismiss
+    function setupAutoDismiss() {
+      autoDismissTimeout = setTimeout(() => {
+        dismissMotivationBanner();
+      }, 10000); // 10 segundos
+    }
+
+    // Pausar auto-dismiss al hacer hover
+    banner.addEventListener('mouseenter', () => {
+      clearTimeout(autoDismissTimeout);
+      banner.classList.add('paused');
+    });
+
+    // Reanudar auto-dismiss al quitar hover
+    banner.addEventListener('mouseleave', () => {
+      banner.classList.remove('paused');
+      setupAutoDismiss();
+    });
+
+    // Iniciar auto-dismiss
+    setupAutoDismiss();
+  })();
+
+  function dismissMotivationBanner() {
+    const banner = document.getElementById('motivationBanner');
+    const toggle = document.getElementById('motivationToggle');
+
+    banner.classList.add('dismissing');
+
+    setTimeout(() => {
+      banner.classList.add('hidden');
+      banner.classList.remove('dismissing');
+      toggle.classList.remove('hidden');
+    }, 500);
+  }
+
+  function showMotivationBanner() {
+    const banner = document.getElementById('motivationBanner');
+    const toggle = document.getElementById('motivationToggle');
+
+    banner.classList.remove('hidden');
+    toggle.classList.add('hidden');
+
+    // Reiniciar barra de progreso
+    const progressBar = banner.querySelector('.motivation-progress');
+    if (progressBar) {
+      progressBar.style.animation = 'none';
+      setTimeout(() => {
+        progressBar.style.animation = 'progress-shrink 10s linear forwards';
+      }, 10);
+    }
+
+    // Configurar nuevo auto-dismiss
+    setTimeout(() => {
+      dismissMotivationBanner();
+    }, 10000);
+  }
+</script>
+{% endif %}
 
 {% set percent = percent if percent is defined else (((completed / (total if total>0 else 1)) * 100) | round | int) %}
 
@@ -43,7 +137,7 @@
     </div>
   </div>
   <div class="col-md-4">
-    <div class="card glass h-100 weekly-card">
+    <div class="card glass h-100 weekly-card" data-onboarding="progress-stats">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="fw-medium">Últimos 7 días</span>
@@ -109,10 +203,31 @@
           {% endif %}
         </div>
 
+        <!-- HU-8 + HU-17 CDA2: Medidor de fortaleza del hábito con racha mejorada -->
+        <div class="mb-3" data-habit-id="{{ base.id }}">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <small class="text-muted">Fortaleza:</small>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-{{ base.strength_color }} rounded-pill small strength-badge">{{ base.strength_level }}</span>
+              {% if base.streak >= 2 %}
+              <span class="streak-indicator">
+                <span class="streak-fire">🔥</span>
+                <span class="streak-count">{{ base.streak }}</span>
+              </span>
+              {% else %}
+              <small class="text-muted strength-streak">🔥 {{ base.streak }} días</small>
+              {% endif %}
+            </div>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-{{ base.strength_color }} strength-bar" role="progressbar" style="width: {{ base.strength }}%;" aria-valuenow="{{ base.strength }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+
         <div class="mt-auto">
           {% if base.id not in completed_today_ids %}
           <div class="d-grid">
-            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ base.id }}')">
+            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="markCompleted('{{ base.id }}')" data-onboarding="complete-button">
               <i class="bi bi-check-circle"></i> Marcar como Completado
             </button>
           </div>
@@ -176,6 +291,27 @@
             {% endif %}
           </div>
           {% endif %}
+
+          <!-- HU-8 + HU-17 CDA2: Medidor de fortaleza del hábito con racha mejorada -->
+          <div class="mb-3" data-habit-id="{{ h.id }}">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="text-muted">Fortaleza:</small>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-{{ h.strength_color }} rounded-pill small strength-badge">{{ h.strength_level }}</span>
+                {% if h.streak >= 2 %}
+                <span class="streak-indicator">
+                  <span class="streak-fire">🔥</span>
+                  <span class="streak-count">{{ h.streak }}</span>
+                </span>
+                {% else %}
+                <small class="text-muted strength-streak">🔥 {{ h.streak }} días</small>
+                {% endif %}
+              </div>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-{{ h.strength_color }} strength-bar" role="progressbar" style="width: {{ h.strength }}%;" aria-valuenow="{{ h.strength }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
 
           <div class="mt-auto">
             {% if h.id not in completed_today_ids %}
@@ -245,6 +381,27 @@
               <div class="text-muted mt-1">Siguiente porque ya completaste <strong>{{ h.base_name }}</strong> hoy.</div>
             </div>
             {% endif %}
+
+            <!-- HU-8 + HU-17 CDA2: Medidor de fortaleza del hábito con racha mejorada -->
+            <div class="mb-3" data-habit-id="{{ h.id }}">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-muted">Fortaleza:</small>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-{{ h.strength_color }} rounded-pill small strength-badge">{{ h.strength_level }}</span>
+                  {% if h.streak >= 2 %}
+                  <span class="streak-indicator">
+                    <span class="streak-fire">🔥</span>
+                    <span class="streak-count">{{ h.streak }}</span>
+                  </span>
+                  {% else %}
+                  <small class="text-muted strength-streak">🔥 {{ h.streak }} días</small>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-{{ h.strength_color }} strength-bar" role="progressbar" style="width: {{ h.strength }}%;" aria-valuenow="{{ h.strength }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
 
             <div class="mt-auto">
               {% if h.id not in completed_today_ids %}
@@ -323,21 +480,79 @@
 {% endif %}
 
 <script>
+  // HU-17 CDA1: Función para crear confeti al completar hábito
+  function createConfetti(buttonElement) {
+    const colors = ['#7c71ff', '#2bd2ff', '#ff6b6b', '#feca57', '#48dbfb'];
+    const shapes = ['●', '■', '▲', '★'];
+    const rect = buttonElement.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'confetti-particle';
+      particle.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+      particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.fontSize = `${Math.random() * 15 + 10}px`;
+      particle.style.left = `${centerX}px`;
+      particle.style.top = `${centerY}px`;
+
+      const angle = (Math.random() * Math.PI * 2);
+      const velocity = Math.random() * 200 + 100;
+      const tx = Math.cos(angle) * velocity;
+      const ty = Math.sin(angle) * velocity - 100;
+
+      particle.style.setProperty('--tx', `${tx}px`);
+      particle.style.setProperty('--ty', `${ty}px`);
+
+      document.body.appendChild(particle);
+
+      particle.addEventListener('animationend', () => particle.remove());
+    }
+  }
+
+  // Actualizar animación de confeti con transformaciones
+  document.head.insertAdjacentHTML('beforeend', `
+    <style>
+      .confetti-particle {
+        --tx: 0px;
+        --ty: 0px;
+      }
+      @keyframes confetti-pop {
+        0% {
+          opacity: 0;
+          transform: translate(0, 0) scale(0) rotate(0deg);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(calc(var(--tx) * 0.5), calc(var(--ty) * 0.5)) scale(1.2) rotate(180deg);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(var(--tx), var(--ty)) scale(0.8) rotate(360deg);
+        }
+      }
+    </style>
+  `);
+
   function showToast(message, type = 'info') {
     const container = document.getElementById('toasts');
     const el = document.createElement('div');
-    el.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+    el.className = `toast align-items-center text-bg-${type} border-0 mb-2 check-animation`;
     el.setAttribute('role', 'alert');
     el.setAttribute('aria-live', 'assertive');
     el.setAttribute('aria-atomic', 'true');
     el.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
     container.appendChild(el);
-    const toast = new bootstrap.Toast(el, { delay: 1600 });
+    const toast = new bootstrap.Toast(el, { delay: 2000 });
     toast.show();
     toast._element.addEventListener('hidden.bs.toast', () => el.remove());
   }
 
   async function markCompleted(habitId) {
+    // Obtener el botón que activó la acción para las animaciones
+    const button = event.target.closest('button');
+
     try {
       const res = await fetch(`${window.location.origin}/progress/complete/${habitId}`, {
         method: 'POST',
@@ -348,8 +563,28 @@
       });
       const data = await res.json();
       if (data.ok) {
-        showToast('¡Hábito marcado como completado!', 'success');
-        setTimeout(() => window.location.reload(), 800);
+        // HU-17 CDA1: Efectos visuales de dopamina
+        if (button) {
+          button.classList.add('success-pulse');
+          createConfetti(button);
+
+          // Efecto de brillo en la tarjeta del hábito
+          const card = button.closest('.card');
+          if (card) {
+            card.classList.add('dopamine-glow');
+            setTimeout(() => card.classList.remove('dopamine-glow'), 1000);
+          }
+        }
+
+        // Mensaje de éxito con animación
+        showToast('¡Excelente! ¡Hábito completado! 🎉', 'success');
+
+        // HU-8 + HU-17 CDA2: Actualizar fortaleza y racha en tiempo real
+        if (data.strength !== undefined) {
+          updateStrengthDisplay(habitId, data);
+        }
+
+        setTimeout(() => window.location.reload(), 1200);
       } else {
         showToast(data.error || 'Error al completar hábito', 'danger');
       }
@@ -357,7 +592,60 @@
       showToast('Error de red', 'danger');
     }
   }
+
+  // HU-8 + HU-17: Actualizar visualización de fortaleza en tiempo real
+  function updateStrengthDisplay(habitId, strengthData) {
+    const strengthContainer = document.querySelector(`[data-habit-id="${habitId}"]`);
+    if (!strengthContainer) return;
+
+    const badge = strengthContainer.querySelector('.strength-badge');
+    const streakElement = strengthContainer.querySelector('.strength-streak, .streak-indicator');
+    const progressBar = strengthContainer.querySelector('.strength-bar');
+
+    if (badge) {
+      badge.className = `badge bg-${strengthData.strength_color} rounded-pill small strength-badge`;
+      badge.textContent = strengthData.strength_level;
+    }
+
+    // HU-17 CDA2: Actualizar indicador de racha con animación
+    if (streakElement) {
+      if (strengthData.streak >= 2) {
+        streakElement.innerHTML = `
+          <span class="streak-fire">🔥</span>
+          <span class="streak-count">${strengthData.streak}</span>
+        `;
+        streakElement.className = 'streak-indicator';
+
+        // Animación especial si aumentó la racha
+        streakElement.style.animation = 'none';
+        setTimeout(() => {
+          streakElement.style.animation = 'bounce-gentle 0.6s ease-out';
+        }, 10);
+      } else {
+        streakElement.textContent = `🔥 ${strengthData.streak} días`;
+        streakElement.className = 'text-muted strength-streak small';
+      }
+    }
+
+    if (progressBar) {
+      progressBar.className = `progress-bar bg-${strengthData.strength_color} strength-bar`;
+      progressBar.style.width = `${strengthData.strength}%`;
+      progressBar.setAttribute('aria-valuenow', strengthData.strength);
+
+      // Animación visual de actualización
+      strengthContainer.style.transition = 'all 0.3s ease';
+      strengthContainer.style.transform = 'scale(1.05)';
+      setTimeout(() => {
+        strengthContainer.style.transform = 'scale(1)';
+      }, 300);
+    }
+  }
 </script>
+
+<!-- HU-18: Onboarding Interactivo Script -->
+{% if needs_onboarding %}
+<script src="{{ url_for('static', filename='js/onboarding.js') }}"></script>
+{% endif %}
 
 <!-- Toast container -->
 <div id="toasts" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>

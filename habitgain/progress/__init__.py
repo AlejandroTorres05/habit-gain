@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 import datetime as _dt
 import secrets
-from ..models import Habit, Completion, DailyProgress, Category
+from ..models import Habit, Completion, DailyProgress, Category, OnboardingStatus
+from ..behavioral_science import MotivationalMessages, calculate_user_motivation_stats
 
 progress_bp = Blueprint("progress", __name__, template_folder="templates")
 
@@ -39,6 +40,14 @@ def panel():
         cid = h.get("category_id")
         if cid:
             h["category_name"] = cats.get(cid)
+
+    # HU-8: Calcular fortaleza de cada hábito basado en racha de cumplimiento
+    for h in habits:
+        strength_data = Completion.calculate_strength(h["id"], user)
+        h["strength"] = strength_data["strength"]
+        h["strength_level"] = strength_data["level"]
+        h["strength_color"] = strength_data["color"]
+        h["streak"] = strength_data["streak"]
 
     # Completados hoy
     completed_today_ids = set(Completion.completed_today_ids(user))
@@ -84,6 +93,18 @@ def panel():
     session["csrf_token_progress"] = csrf_token
     session.modified = True
 
+    # HU-17 CDA3: Calcular mensaje motivacional
+    motivation_stats = calculate_user_motivation_stats(
+        user_email=user,
+        habits=habits,
+        completed_today_ids=completed_today_ids,
+        days_completed=days_completed
+    )
+    motivation_message = MotivationalMessages.get_message_for_user(motivation_stats)
+
+    # HU-18: Verificar si el usuario necesita onboarding
+    needs_onboarding = OnboardingStatus.needs_onboarding(user)
+
     return render_template(
         "progress/panel.html",
         habits=habits,
@@ -102,6 +123,8 @@ def panel():
         planned_total_max=planned_total_max,
         next_due_ids=next_due_ids,
         csrf_token=csrf_token,
+        motivation_message=motivation_message,
+        needs_onboarding=needs_onboarding,
     )
 
 
@@ -117,6 +140,14 @@ def complete(habit_id: int):
         return jsonify({"ok": False, "error": "invalid_csrf"}), 400
     try:
         Completion.mark_completed(habit_id, user)
-        return jsonify({"ok": True})
+        # HU-8 CDA3: Calcular fortaleza actualizada en tiempo real
+        strength_data = Completion.calculate_strength(habit_id, user)
+        return jsonify({
+            "ok": True,
+            "strength": strength_data["strength"],
+            "strength_level": strength_data["level"],
+            "strength_color": strength_data["color"],
+            "streak": strength_data["streak"]
+        })
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400

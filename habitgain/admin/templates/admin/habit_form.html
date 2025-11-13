@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4" style="max-width: 600px;">
+  <h2>Editar Hábito</h2>
+  <div class="card glass mt-3">
+    <div class="card-body">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" name="name" class="form-control" value="{{ habit.name }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Descripción</label>
+          <textarea name="short_desc" class="form-control" rows="3">{{ habit.short_desc or '' }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email del propietario</label>
+          <input type="email" name="owner_email" class="form-control" value="{{ habit.owner_email }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Estado</label>
+          <select name="active" class="form-select">
+            <option value="1" {{ 'selected' if habit.active else '' }}>Activo</option>
+            <option value="0" {{ 'selected' if not habit.active else '' }}>Inactivo</option>
+          </select>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <a href="{{ url_for('admin.habits_list') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4" style="max-width: 600px;">
+  <h2>Confirmar Eliminación de Hábito</h2>
+  <div class="alert alert-warning mt-3">
+    <strong>¿Estás seguro de que deseas eliminar este hábito?</strong>
+    <p class="mb-0 mt-2">Nombre: {{ habit.name }}<br>Propietario: {{ habit.owner_email }}</p>
+    <p class="mb-0 text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+  </div>
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+      <a href="{{ url_for('admin.habits_list') }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
