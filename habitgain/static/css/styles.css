@@ -168,3 +168,733 @@ section .section-title {
     transform: translateY(-2px);
     box-shadow: 0 16px 40px rgba(30, 60, 120, .15)
 }
+
+/* ===== Progress enhancements ===== */
+.progress {
+    background-color: rgba(0,0,0,.06);
+    overflow: hidden;
+    border-radius: 999px;
+}
+.progress-animated .progress-bar {
+    transition: width .6s ease;
+}
+
+/* Circular progress (donut) */
+.progress-ring {
+    --size: 140px;
+    --track: #e9e8ff;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    position: relative;
+    background:
+      conic-gradient(#7c71ff calc(var(--p,0) * 1%), var(--track) 0);
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow);
+}
+.progress-ring::after {
+    content: "";
+    width: calc(var(--size) - 28px);
+    height: calc(var(--size) - 28px);
+    background: rgba(255,255,255,.8);
+    border-radius: 50%;
+    backdrop-filter: blur(6px);
+}
+.progress-ring .progress-value {
+    position: absolute;
+    font-weight: 800;
+    font-size: 1.35rem;
+}
+.progress-ring .progress-caption {
+    position: absolute;
+    bottom: 12px;
+    font-size: .75rem;
+    color: var(--muted);
+}
+
+/* Weekly card */
+.weekly-card .metric {
+    display: grid;
+    gap: .1rem;
+}
+.weekly-card .metric .label{font-size:.75rem;color:var(--muted)}
+.weekly-card .metric .value{font-weight:700}
+
+/* ===== HU-17: Behavioral Science Animations ===== */
+
+/* CDA 1: Animación de confeti al completar hábito */
+@keyframes confetti-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8) rotate(360deg);
+    }
+}
+
+.confetti-particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    animation: confetti-pop 1.2s ease-out forwards;
+}
+
+/* Animación de check satisfactorio */
+@keyframes check-bounce {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.check-animation {
+    animation: check-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Animación de círculo que se llena */
+@keyframes fill-circle {
+    0% {
+        stroke-dashoffset: 100;
+        opacity: 0.5;
+    }
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+.habit-complete-circle {
+    animation: fill-circle 0.8s ease-out forwards;
+}
+
+/* Efecto de pulso en botón al completar */
+@keyframes success-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+}
+
+.success-pulse {
+    animation: success-pulse 0.6s ease-out;
+}
+
+/* Brillo de dopamina */
+@keyframes dopamine-glow {
+    0% {
+        box-shadow: 0 0 5px rgba(123, 113, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(123, 113, 255, 0.8), 0 0 30px rgba(43, 210, 255, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(123, 113, 255, 0.5);
+    }
+}
+
+.dopamine-glow {
+    animation: dopamine-glow 1s ease-in-out;
+}
+
+/* CDA 2: Estilos mejorados para rachas */
+.streak-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    background: linear-gradient(135deg, #ff6b6b, #feca57);
+    border-radius: 999px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+}
+
+.streak-indicator:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.streak-fire {
+    font-size: 1.1rem;
+    animation: fire-flicker 2s ease-in-out infinite;
+}
+
+@keyframes fire-flicker {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+    }
+    25% {
+        transform: scale(1.1) rotate(-5deg);
+        filter: brightness(1.2);
+    }
+    75% {
+        transform: scale(0.95) rotate(5deg);
+        filter: brightness(0.9);
+    }
+}
+
+/* Animación para racha perdida */
+@keyframes streak-lost {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.streak-warning {
+    animation: streak-lost 1.5s ease-in-out 3;
+}
+
+/* CDA 3: Mensaje motivacional con auto-dismiss */
+.motivation-banner {
+    position: relative;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(123, 113, 255, 0.1), rgba(43, 210, 255, 0.1));
+    border-left: 4px solid var(--primary);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.5s ease;
+    animation: slide-in-down 0.6s ease-out;
+}
+
+/* Animación de entrada */
+@keyframes slide-in-down {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estado oculto */
+.motivation-banner.hidden {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+
+/* Animación de salida */
+@keyframes slide-out-up {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+        max-height: 0;
+    }
+}
+
+.motivation-banner.dismissing {
+    animation: slide-out-up 0.5s ease-out forwards;
+}
+
+.motivation-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.motivation-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+@keyframes bounce-gentle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.motivation-text {
+    font-size: 1rem;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.motivation-subtext {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+}
+
+/* Botón de cerrar */
+.motivation-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.motivation-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+}
+
+/* Botón para mostrar mensaje de nuevo */
+.motivation-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, rgba(123, 113, 255, 0.1), rgba(43, 210, 255, 0.1));
+    border: 1px solid rgba(123, 113, 255, 0.3);
+    border-radius: 999px;
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.motivation-toggle:hover {
+    background: linear-gradient(135deg, rgba(123, 113, 255, 0.2), rgba(43, 210, 255, 0.2));
+    border-color: rgba(123, 113, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(123, 113, 255, 0.2);
+}
+
+.motivation-toggle.hidden {
+    display: none;
+}
+
+/* Barra de progreso de auto-dismiss */
+.motivation-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    width: 100%;
+    transform-origin: left;
+    animation: progress-shrink 10s linear forwards;
+}
+
+@keyframes progress-shrink {
+    0% {
+        transform: scaleX(1);
+    }
+    100% {
+        transform: scaleX(0);
+    }
+}
+
+.motivation-banner.paused .motivation-progress {
+    animation-play-state: paused;
+}
+
+/* ===== HU-18: Onboarding Interactivo ===== */
+
+/* Overlay oscuro de fondo para el tour */
+.onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.onboarding-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Spotlight: recorte para resaltar elemento */
+.onboarding-spotlight {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    border: 3px solid var(--primary);
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(123, 113, 255, 0.6);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: spotlight-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spotlight-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4),
+                    0 0 20px rgba(123, 113, 255, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4),
+                    0 0 30px rgba(123, 113, 255, 0.9);
+    }
+}
+
+/* Elemento resaltado durante el onboarding */
+.onboarding-highlight {
+    position: relative;
+    z-index: 10000 !important;
+}
+
+/* Tarjeta de tooltip del tour */
+.onboarding-tooltip {
+    position: fixed;
+    z-index: 10001;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(123, 113, 255, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.onboarding-tooltip.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.onboarding-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.onboarding-step-indicator {
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+}
+
+.onboarding-tooltip-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.onboarding-tooltip-close:hover {
+    opacity: 1;
+}
+
+.onboarding-tooltip-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.onboarding-tooltip-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+.onboarding-tooltip-content {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+
+.onboarding-tooltip-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.onboarding-progress-dots {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.onboarding-progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(123, 113, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.onboarding-progress-dot.active {
+    background: var(--primary);
+    width: 20px;
+    border-radius: 4px;
+}
+
+.onboarding-btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.onboarding-btn-skip {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: var(--ink);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.onboarding-btn-skip:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.onboarding-btn-next,
+.onboarding-btn-prev {
+    background: linear-gradient(135deg, #7c71ff, #2bd2ff);
+    border: none;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.onboarding-btn-prev {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--ink);
+}
+
+.onboarding-btn-next:hover,
+.onboarding-btn-prev:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(123, 113, 255, 0.3);
+}
+
+.onboarding-btn-prev:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.onboarding-btn-finish {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.onboarding-btn-finish:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+/* Animación de entrada del tooltip */
+@keyframes tooltip-enter {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.onboarding-tooltip.entering {
+    animation: tooltip-enter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Wizard para primer hábito simplificado */
+.onboarding-wizard {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10001;
+    width: 90%;
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(123, 113, 255, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.onboarding-wizard.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.onboarding-wizard-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.onboarding-wizard-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.onboarding-wizard-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+.onboarding-wizard-subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.onboarding-wizard-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.onboarding-wizard-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+/* Badge de bienvenida */
+.onboarding-welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, rgba(123, 113, 255, 0.15), rgba(43, 210, 255, 0.15));
+    border: 1px solid rgba(123, 113, 255, 0.3);
+    border-radius: 999px;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    animation: welcome-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes welcome-bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+/* Efecto de confeti al completar onboarding */
+@keyframes onboarding-confetti-burst {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.5) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.onboarding-confetti {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10002;
+    font-size: 1.5rem;
+    animation: onboarding-confetti-burst 2s ease-out forwards;
+}

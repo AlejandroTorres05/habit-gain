@@ -1,139 +1,228 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container-form py-4" style="max-width: 640px; margin: auto;">
-    <!-- Header -->
-    <div class="header-title text-center mb-4">
-        <h1 class="fw-bold">Crear Nuevo Hábito</h1>
-        <p class="text-muted">Construye tu rutina paso a paso</p>
+<div class="container-form py-4" style="max-width: 760px; margin: auto;">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <div class="section-kicker">Nuevo hábito</div>
+      <h1 class="fw-bold mb-1 text-gradient">Crea un hábito poderoso</h1>
+      <div class="text-muted">Define un nombre claro y conecta con un hábito existente para asegurar consistencia.</div>
     </div>
-    
-    <!-- Mensajes Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    
-    <!-- Formulario -->
-    <div class="form-card card shadow-sm border-0 rounded-4 p-4 bg-white">
-        <form method="POST" action="{{ url_for('habits.create') }}" id="habitForm">
-            
-            <!-- Nombre del hábito -->
-            <div class="mb-4">
-                <label for="nombre" class="form-label fw-semibold">Nombre del hábito *</label>
-                <input 
-                    type="text" 
-                    class="form-control p-3 rounded-3" 
-                    id="nombre" 
-                    name="nombre" 
-                    placeholder="Ej: Escribir en mi diario" 
-                    required>
-            </div>
-            
-            <!-- Descripción -->
-            <div class="mb-4">
-                <label for="descripcion" class="form-label fw-semibold">Descripción (opcional)</label>
-                <textarea 
-                    class="form-control p-3 rounded-3" 
-                    id="descripcion" 
-                    name="descripcion" 
-                    rows="3" 
-                    placeholder="¿Qué quieres lograr con este hábito?"></textarea>
-            </div>
-            
-            <!-- Categoría -->
-            <div class="mb-4">
-                <label for="categoria" class="form-label fw-semibold">Categoría *</label>
-                <select class="form-select p-3 rounded-3" id="categoria" name="categoria" required>
-                    <option value="">Selecciona una categoría</option>
-                    {% for cat in categorias %}
-                        <option value="{{ cat }}">{{ cat }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <!-- Frecuencia -->
-            <div class="mb-4">
-                <label for="frecuencia" class="form-label fw-semibold">Frecuencia</label>
-                <select class="form-select p-3 rounded-3" id="frecuencia" name="frecuencia">
-                    <option value="diaria" selected>Diaria</option>
-                    <option value="semanal">Semanal</option>
-                    <option value="mensual">Mensual</option>
-                </select>
-            </div>
-            
-            <!-- HABIT STACKING -->
-            <div class="habit-stacking-box border rounded-4 p-3 bg-light mb-4">
-                <div class="habit-stacking-header d-flex align-items-center mb-2">
-                    <svg class="link-icon me-2" viewBox="0 0 24 24" width="22" height="22" stroke="#06b6d4" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    <label class="fw-semibold mb-0">Habit Stacking (Encadenamiento)</label>
-                </div>
-                
-                <p class="habit-stacking-description small text-muted mb-2">
-                    Conecta este hábito con uno existente. Ejemplo: “Después de <strong>hacer ejercicio</strong>, voy a <strong>meditar 10 minutos</strong>”.
-                </p>
+    <span class="brand-badge">HG</span>
+  </div>
 
-                <label for="habit_base_id" class="form-label">Vincular con hábito existente (opcional)</label>
-                <select class="form-select p-3 rounded-3" id="habit_base_id" name="habit_base_id" onchange="updatePreview()">
-                    <option value="">Sin vincular (hábito independiente)</option>
-                    {% for habit in habitos_existentes %}
-                        <option value="{{ habit.id }}" data-nombre="{{ habit.nombre or habit.name }}">
-                            Después de: {{ habit.nombre or habit.name }} {% if habit.categoria %}({{ habit.categoria }}){% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
-                <div class="preview-box mt-3 p-3 bg-white rounded-3 border" id="previewBox" style="display:none;">
-                    <strong>Vista previa:</strong> Después de completar <strong id="habitBase">[hábito base]</strong>, realizaré <strong id="habitNuevo">[nuevo hábito]</strong>.
-                </div>
-            </div>
+  <!-- Form card -->
+  <div class="card glass p-4">
+    <form method="POST" action="{{ url_for('habits.create') }}" id="habitForm">
 
-            <!-- Botones -->
-            <div class="d-flex gap-3 justify-content-end">
-                <a href="{{ url_for('progress.panel') }}" class="btn btn-outline-secondary px-4 rounded-pill">
-                    Cancelar
-                </a>
-                <button type="submit" class="btn btn-primary px-4 rounded-pill">
-                    Crear Hábito
-                </button>
-            </div>
-        </form>
-    </div>
+      <!-- Nombre & Descripción -->
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="nombre" class="form-label fw-semibold">Nombre del hábito *</label>
+          <input type="text" class="form-control p-3" id="nombre" name="nombre" placeholder="Ej: Escribir en mi diario" required>
+          <div id="nameFeedback" class="form-text">Usa un verbo en presente y sé específico.</div>
+        </div>
+        <div class="col-md-6">
+          <label for="frecuencia" class="form-label fw-semibold">Frecuencia</label>
+          <select class="form-select p-3" id="frecuencia" name="frecuencia">
+            <option value="diaria" selected>Diaria</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+            <option value="cada_2_dias">Cada 2 días</option>
+            <option value="cada_3_dias">Cada 3 días</option>
+            <option value="dias_laborales">Días laborales</option>
+            <option value="fin_de_semana">Fin de semana</option>
+            <option value="cada_2_semanas">Cada 2 semanas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Plantillas rápidas -->
+      <div class="mt-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <label class="form-label fw-semibold mb-0">Sugerencias rápidas</label>
+          <span class="small text-muted">Autocompletan nombre, descripción y frecuencia</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-template='{"name":"Beber agua (1 vaso)","desc":"Hidratarme para comenzar con energía.","freq":"diaria"}'>Beber agua</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-template='{"name":"Leer 10 minutos","desc":"Lectura enfocada para aprender cada día.","freq":"diaria"}'>Leer 10m</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-template='{"name":"Pomodoro (25m)","desc":"Bloque de enfoque para tareas importantes.","freq":"diaria"}'>Pomodoro</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-template='{"name":"Caminar 15 minutos","desc":"Actividad ligera para activar el cuerpo.","freq":"diaria"}'>Caminar</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-template='{"name":"Plan semanal","desc":"Revisar objetivos y planear la semana.","freq":"semanal"}'>Plan semanal</button>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <label for="descripcion" class="form-label fw-semibold">Descripción (opcional)</label>
+        <textarea class="form-control p-3" id="descripcion" name="descripcion" rows="3" placeholder="¿Qué quieres lograr con este hábito?"></textarea>
+      </div>
+
+      <!-- Categoría (texto libre con sugerencias) -->
+      <div class="mt-3">
+        <label for="categoria" class="form-label fw-semibold">Categoría <span class="text-muted small">(escribe o elige sugerencia)</span></label>
+        <div class="row g-2">
+          <div class="col-12 col-md-8">
+            <input class="form-control p-3" list="categorias_list" id="categoria" name="categoria" placeholder="Ej: Salud" />
+            <datalist id="categorias_list">
+              {% for cat in categorias %}
+                <option value="{{ cat }}">
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="form-text">Si dejas vacío, usaremos una categoría predeterminada.</div>
+          </div>
+        </div>
+      </div>
+
+      
+
+      <!-- Habit Stacking -->
+      {% if habitos_existentes and habitos_existentes|length > 0 %}
+      <div class="mt-4">
+        <div class="d-flex align-items-center mb-2">
+          <svg class="me-2" viewBox="0 0 24 24" width="22" height="22" stroke="#06b6d4" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a 5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <label class="fw-semibold mb-0">Habit Stacking (Encadenamiento)</label>
+        </div>
+        <p class="small text-muted mb-2">Conecta este hábito con uno existente. Ej: “Después de <strong>hacer ejercicio</strong>, voy a <strong>meditar 10 minutos</strong>”.</p>
+
+        <label for="habit_base_id" class="form-label">Vincular con hábito existente (opcional)</label>
+        <select class="form-select p-3" id="habit_base_id" name="habit_base_id" onchange="updatePreview()">
+          <option value="">Sin vincular (hábito independiente)</option>
+          {% for habit in habitos_existentes %}
+            <option value="{{ habit.id }}" data-nombre="{{ habit.nombre or habit.name }}">
+              Después de: {{ habit.nombre or habit.name }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <div class="preview-box mt-3 p-3 bg-white rounded-3 border" id="previewBox" style="display:none;">
+          <strong>Vista previa:</strong> Después de completar <strong id="habitBase">[hábito base]</strong>, realizaré <strong id="habitNuevo">[nuevo hábito]</strong>.
+        </div>
+      </div>
+      {% endif %}
+      {% if not habitos_existentes or habitos_existentes|length == 0 %}
+      <div class="mt-4">
+        <div class="alert alert-info">
+          Aún no tienes hábitos para encadenar. Crea uno base primero y luego podrás vincular otro como “Siguiente”.
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="d-flex gap-3 justify-content-end mt-4">
+        <a href="{{ url_for('progress.panel') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancelar</a>
+        <button type="submit" class="btn btn-primary rounded-pill px-4">Crear Hábito</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<!-- Script de vista previa -->
+<!-- Mantener lógica de vista previa sin cambios -->
 <script>
-    function updatePreview() {
-        const select = document.getElementById('habit_base_id');
-        const previewBox = document.getElementById('previewBox');
-        const habitBase = document.getElementById('habitBase');
-        const habitNuevo = document.getElementById('habitNuevo');
-        const nombreInput = document.getElementById('nombre');
-        
-        if (select.value) {
-            const selectedOption = select.options[select.selectedIndex];
-            const nombreBase = selectedOption.getAttribute('data-nombre');
-            habitBase.textContent = nombreBase;
-            habitNuevo.textContent = nombreInput.value || '[nuevo hábito]';
-            previewBox.style.display = 'block';
-        } else {
-            previewBox.style.display = 'none';
-        }
+  // Live validation for duplicate names
+  (function() {
+    const nombre = document.getElementById('nombre');
+    const feedback = document.getElementById('nameFeedback');
+    let t = null;
+    function setState(state, msg) {
+      nombre.classList.remove('is-valid','is-invalid');
+      if (state === 'valid') nombre.classList.add('is-valid');
+      if (state === 'invalid') nombre.classList.add('is-invalid');
+      if (msg) feedback.textContent = msg; else feedback.textContent = 'Usa un verbo en presente y sé específico.';
     }
-
-    document.getElementById('nombre').addEventListener('input', function() {
-        const select = document.getElementById('habit_base_id');
-        if (select.value) updatePreview();
+    nombre.addEventListener('input', () => {
+      clearTimeout(t);
+      const val = nombre.value.trim();
+      if (!val) { setState(null); return; }
+      t = setTimeout(async () => {
+        try {
+          const res = await fetch(`${window.location.origin}/habits/validate-name?name=${encodeURIComponent(val)}`);
+          const data = await res.json();
+          if (data && data.ok) {
+            if (data.exists) setState('invalid', 'Ya tienes un hábito con ese nombre.');
+            else setState('valid', 'Nombre disponible.');
+          }
+        } catch (_) { /* silenciar errores de red */ }
+      }, 300);
     });
+  })();
+
+  // Quick templates apply
+  (function() {
+    const container = document.currentScript.closest('.card');
+    const btns = container.querySelectorAll('[data-template]');
+    const nombre = document.getElementById('nombre');
+    const desc = document.getElementById('descripcion');
+    const freq = document.getElementById('frecuencia');
+    
+    btns.forEach(b => b.addEventListener('click', () => {
+      try {
+        const tpl = JSON.parse(b.getAttribute('data-template'));
+        if (tpl.name) nombre.value = tpl.name;
+        if (tpl.desc) desc.value = tpl.desc;
+        if (tpl.freq) freq.value = tpl.freq;
+        
+        // trigger validation and preview update
+        nombre.dispatchEvent(new Event('input'));
+        updatePreview();
+      } catch (e) {}
+    }));
+  })();
+
+  
+
+  function updatePreview() {
+    const select = document.getElementById('habit_base_id');
+    if (!select) return;
+    const previewBox = document.getElementById('previewBox');
+    const habitBase = document.getElementById('habitBase');
+    const habitNuevo = document.getElementById('habitNuevo');
+    const nombreInput = document.getElementById('nombre');
+    if (select.value) {
+      const selectedOption = select.options[select.selectedIndex];
+      const nombreBase = selectedOption.getAttribute('data-nombre');
+      habitBase.textContent = nombreBase;
+      habitNuevo.textContent = nombreInput.value || '[nuevo hábito]';
+      previewBox.style.display = 'block';
+    } else {
+      previewBox.style.display = 'none';
+    }
+  }
+  document.getElementById('nombre').addEventListener('input', function () {
+    const select = document.getElementById('habit_base_id');
+    if (select.value) updatePreview();
+  });
+
+  // Ensure form submission completes and redirects properly
+  (function() {
+    const form = document.getElementById('habitForm');
+    if (form) {
+      form.addEventListener('submit', function() {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = 'Creando... <span class="spinner-border spinner-border-sm ms-2"></span>';
+        }
+      });
+    }
+  })();
 </script>
 
 {% endblock %}

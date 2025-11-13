@@ -225,3 +225,50 @@ git commit -m "feat: add the login screen"
 ## Notas de Desarrollo
 
 Este proyecto se desarrolla de manera incremental siguiendo historias de usuario en sprints SCRUM. El README se actualizará conforme se agreguen nuevas funcionalidades.
+
+---
+
+## Panel de Administración
+
+### Configurar Usuario Administrador
+
+Después de instalar el proyecto, ejecuta el script de configuración:
+
+```bash
+# Activar entorno virtual (si no está activado)
+source venv/bin/activate  # Linux/macOS
+# o
+.\venv\Scripts\Activate.ps1  # Windows PowerShell
+
+# Ejecutar script de configuración
+python3 setup_admin.py
+```
+
+Este script:
+1. Ejecuta las migraciones necesarias
+2. Actualiza el usuario demo a administrador O crea un nuevo admin
+3. Muestra las credenciales de acceso
+
+### Credenciales por Defecto
+
+**Si tienes el usuario demo:**
+- Email: `demo@habitgain.local`
+- Password: `demo123`
+
+**Si se crea nuevo admin:**
+- Email: `admin@habitgain.com`
+- Password: `admin123`
+
+### Acceder al Panel
+
+1. Inicia sesión con las credenciales de administrador
+2. Accede a: `http://localhost:5000/admin`
+
+### Funcionalidades del Panel Admin
+
+- **Dashboard**: Estadísticas del sistema (usuarios, hábitos, etc.)
+- **Gestión de Usuarios**: Crear, editar, eliminar usuarios y asignar roles
+- **Gestión de Hábitos**: Ver, editar y eliminar hábitos de cualquier usuario
+- Todas las acciones requieren confirmación antes de eliminar
+- Validaciones completas en todos los formularios
+
