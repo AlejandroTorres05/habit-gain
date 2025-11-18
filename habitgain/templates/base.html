@@ -31,6 +31,10 @@
         <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
                 {% set _path = request.path %}
+                {% set _endpoint = request.endpoint or '' %}
+
+                {# Navegación principal: ocultar en la pantalla de login y registro #}
+                {% if _endpoint not in ['auth.login', 'auth.register'] %}
                 <li class="nav-item">
                     <a class="btn {{ 'btn-primary-soft' if _path.startswith('/explore') else 'btn-ghost' }}" href="{{ url_for('explore.home') }}">
                         <i class="bi bi-compass"></i> Explorar
@@ -54,19 +58,29 @@
                 </li>
 
                 {% if is_admin %}
-                <li class="nav-item">
-                    <a class="btn {{ 'btn-primary-soft' if _path.startswith('/admin') else 'btn-ghost' }}" href="{{ url_for('admin.dashboard') }}">
+                <li class="nav-item dropdown">
+                    <a class="btn {{ 'btn-primary-soft' if _path.startswith('/admin') else 'btn-ghost' }} dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-shield-lock"></i> Admin
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Panel</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.users_list') }}">Usuarios</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.habits_list') }}">Hábitos</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.onboarding_analytics') }}">Onboarding analytics</a></li>
+                    </ul>
                 </li>
                 {% endif %}
+                {% endif %}
 
+                {# Zona de auth: en /auth/login y /auth/register solo mostrar Register (sin Sign in) #}
                 {% if 'user' not in session %}
                 <li class="nav-item">
                     <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">
                         <i class="bi bi-person-plus"></i> Register
                     </a>
                 </li>
+                {% if _endpoint not in ['auth.login', 'auth.register'] %}
                 <li class="nav-item">
                     {% if has_auth %}
                     <a class="btn btn-danger-soft" href="{{ url_for('auth.login') }}">
@@ -78,6 +92,7 @@
                     </span>
                     {% endif %}
                 </li>
+                {% endif %}
                 {% else %}
                 <li class="nav-item">
                     {% if has_auth %}

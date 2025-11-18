@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 import datetime as _dt
+import calendar as _cal
 import secrets
 from ..models import Habit, Completion, DailyProgress, Category, OnboardingStatus
 from ..behavioral_science import MotivationalMessages, calculate_user_motivation_stats
@@ -102,6 +103,21 @@ def panel():
     )
     motivation_message = MotivationalMessages.get_message_for_user(motivation_stats)
 
+    # TT-12 CDA2: Detectar pérdida de racha (ayer hubo actividad y hoy no)
+    streak_loss_message = None
+    if completed == 0 and motivation_stats.get("max_streak", 0) > 0:
+        yesterday = today - _dt.timedelta(days=1)
+        yesterday_completed = Completion.count_days_with_completion(
+            user,
+            yesterday.isoformat(),
+            yesterday.isoformat(),
+        )
+        if yesterday_completed > 0:
+            streak_loss_message = {
+                "title": "¡No te desanimes!",
+                "text": "Ayer mantenías una racha activa. Hoy es el día 1 de tu nueva mejor racha.",
+            }
+
     # HU-18: Verificar si el usuario necesita onboarding
     needs_onboarding = OnboardingStatus.needs_onboarding(user)
 
@@ -124,7 +140,114 @@ def panel():
         next_due_ids=next_due_ids,
         csrf_token=csrf_token,
         motivation_message=motivation_message,
+        streak_loss_message=streak_loss_message,
         needs_onboarding=needs_onboarding,
+    )
+
+
+@progress_bp.route("/stats")
+def stats():
+    """Pantalla de estadísticas: calendario mensual + métricas de rendimiento.
+
+    Implementa TT-12 CDA3 y CDA4.
+    """
+    user = (session.get("user") or {}).get("email")
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    # Parámetros opcionales de mes/año, por defecto mes actual
+    today = _dt.date.today()
+    year = request.args.get("year", type=int) or today.year
+    month = request.args.get("month", type=int) or today.month
+
+    # Hábitos del usuario (para calcular rachas)
+    habits = Habit.list_active_by_owner(user)
+
+    # Racha actual (máximo entre hábitos activos)
+    current_streak = 0
+    current_streak_habit_name = None
+    for h in habits:
+        s = Completion.get_current_streak(h["id"], user)
+        if s > current_streak:
+            current_streak = s
+            current_streak_habit_name = h.get("name")
+
+    # Mejor racha histórica (máximo best_streak entre hábitos)
+    best_streak = 0
+    for h in habits:
+        bs = Completion.get_best_streak(h["id"], user)
+        if bs > best_streak:
+            best_streak = bs
+
+    # Tasa de cumplimiento últimos 30 días
+    window_days = 30
+    start_30 = today - _dt.timedelta(days=window_days - 1)
+    completion_dates_30 = set(
+        Completion.get_completion_dates_in_range(
+            user,
+            start_30.isoformat(),
+            today.isoformat(),
+        )
+    )
+    success_days_30 = len(completion_dates_30)
+    compliance_rate_30 = int(round((success_days_30 / window_days) * 100)) if window_days > 0 else 0
+
+    # Calendario mensual (heatmap)
+    cal = _cal.Calendar(firstweekday=0)
+    month_weeks = []
+
+    # Rango de fechas del mes
+    first_of_month = _dt.date(year, month, 1)
+    if month == 12:
+        first_next = _dt.date(year + 1, 1, 1)
+    else:
+        first_next = _dt.date(year, month + 1, 1)
+    last_of_month = first_next - _dt.timedelta(days=1)
+
+    completion_dates_month = set(
+        Completion.get_completion_dates_in_range(
+            user,
+            first_of_month.isoformat(),
+            last_of_month.isoformat(),
+        )
+    )
+
+    for week in cal.monthdatescalendar(year, month):
+        week_cells = []
+        for day in week:
+            day_str = day.isoformat()
+            in_month = (day.month == month)
+            if not in_month:
+                status = "other-month"
+            elif day > today:
+                status = "future"
+            elif day_str in completion_dates_month:
+                status = "completed"
+            else:
+                status = "missed"
+            week_cells.append({
+                "date": day,
+                "in_month": in_month,
+                "status": status,
+            })
+        month_weeks.append(week_cells)
+
+    month_name = first_of_month.strftime("%B")
+
+    return render_template(
+        "progress/stats.html",
+        habits=habits,
+        year=year,
+        month=month,
+        month_name=month_name,
+        month_weeks=month_weeks,
+        today=today,
+        current_streak=current_streak,
+        current_streak_habit_name=current_streak_habit_name,
+        best_streak=best_streak,
+        compliance_rate_30=compliance_rate_30,
+        success_days_30=success_days_30,
+        window_days_30=window_days,
     )
 
 

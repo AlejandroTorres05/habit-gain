@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Onboarding Analytics</h2>
+    <p class="text-muted mb-0">Resumen de uso del onboarding interactivo (HU-18).</p>
+  </div>
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary rounded-pill">
+    <i class="bi bi-arrow-left"></i> Volver al panel admin
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">Usuarios totales</h6>
+        <div class="display-6 fw-bold">{{ stats.total_users }}</div>
+        <p class="text-muted small mb-0">Usuarios registrados en el sistema.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">Con onboarding</h6>
+        <div class="display-6 fw-bold">{{ stats.total_onboarding }}</div>
+        <p class="text-muted small mb-0">Usuarios con registro de onboarding.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">Completado</h6>
+        <div class="display-6 fw-bold text-success">{{ stats.completed }}</div>
+        <p class="text-muted small mb-0">Usuarios que terminaron el onboarding.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">Saltado</h6>
+        <div class="display-6 fw-bold text-warning">{{ stats.skipped }}</div>
+        <p class="text-muted small mb-0">Usuarios que lo omitieron.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">En progreso</h6>
+        <div class="display-6 fw-bold">{{ stats.in_progress }}</div>
+        <p class="text-muted small mb-0">Usuarios que aún no lo completan ni lo han saltado.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">Tasa de completitud</h6>
+        <div class="display-6 fw-bold text-success">{{ stats.completion_rate }}<span class="fs-6 ms-1">%</span></div>
+        <p class="text-muted small mb-0">Porcentaje de usuarios que completan el onboarding.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card glass h-100">
+      <div class="card-body">
+        <h6 class="text-muted">Tasa de skip</h6>
+        <div class="display-6 fw-bold text-warning">{{ stats.skip_rate }}<span class="fs-6 ms-1">%</span></div>
+        <p class="text-muted small mb-0">Porcentaje de usuarios que lo saltan.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card glass mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Distribución de estados</h5>
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <div class="progress" style="height: 1.25rem;">
+          {% set total = stats.completed + stats.skipped + stats.in_progress %}
+          {% set comp_pct = (stats.completed / (total if total>0 else 1) * 100) | round(0) %}
+          {% set skip_pct = (stats.skipped / (total if total>0 else 1) * 100) | round(0) %}
+          {% set prog_pct = (stats.in_progress / (total if total>0 else 1) * 100) | round(0) %}
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ comp_pct }}%" aria-label="Completado"></div>
+          <div class="progress-bar bg-warning" role="progressbar" style="width: {{ skip_pct }}%" aria-label="Saltado"></div>
+          <div class="progress-bar bg-info" role="progressbar" style="width: {{ prog_pct }}%" aria-label="En progreso"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-unstyled mb-0 small">
+          <li><span class="badge bg-success me-2">&nbsp;</span>Completado: {{ stats.completed }} ({{ comp_pct }}%)</li>
+          <li><span class="badge bg-warning me-2">&nbsp;</span>Saltado: {{ stats.skipped }} ({{ skip_pct }}%)</li>
+          <li><span class="badge bg-info me-2">&nbsp;</span>En progreso: {{ stats.in_progress }} ({{ prog_pct }}%)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card glass">
+  <div class="card-body">
+    <h5 class="mb-3">Profundidad de uso</h5>
+    <p class="mb-1">Promedio de pasos completados por usuario:</p>
+    <div class="display-6 fw-bold">{{ stats.avg_steps_completed }}</div>
+    <p class="text-muted small mb-0">Ayuda a entender si los usuarios avanzan más allá de los primeros pasos del tour.</p>
+  </div>
+</div>
+
+{% endblock %}
