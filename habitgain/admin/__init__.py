@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from ..models import User, Habit
 import secrets
 from functools import wraps
+import requests
 
 admin_bp = Blueprint("admin", __name__, template_folder="templates")
 
@@ -203,6 +204,43 @@ def users_delete(user_id: int):
 
     csrf_token = _get_csrf_token()
     return render_template("admin/user_delete.html", user=user, csrf_token=csrf_token)
+
+
+# ============== ANALYTICS ONBOARDING ==============
+
+@admin_bp.route("/onboarding-analytics")
+@require_admin
+def onboarding_analytics():
+    """Vista HTML para ver analytics del onboarding.
+
+    Consume el endpoint /onboarding/analytics y muestra métricas básicas
+    (CDA5 de HU10/HU18).
+    """
+    # Consumir el endpoint interno usando requests al mismo host
+    # Asumimos ambiente local simple; en producción se preferiría usar
+    # OnboardingStatus.get_analytics() directamente.
+    try:
+        # Construir URL absoluta al endpoint JSON
+        from flask import current_app
+        base_url = request.host_url.rstrip("/")
+        url = f"{base_url}/onboarding/analytics"
+        resp = requests.get(url, cookies=request.cookies)
+        data = resp.json() if resp.ok else {}
+    except Exception:
+        data = {}
+
+    stats = {
+        "total_users": data.get("total_users", 0),
+        "total_onboarding": data.get("total_onboarding", 0),
+        "completed": data.get("completed", 0),
+        "skipped": data.get("skipped", 0),
+        "in_progress": data.get("in_progress", 0),
+        "completion_rate": data.get("completion_rate", 0),
+        "skip_rate": data.get("skip_rate", 0),
+        "avg_steps_completed": data.get("avg_steps_completed", 0),
+    }
+
+    return render_template("admin/onboarding_analytics.html", stats=stats)
 
 
 # ============== CRUD HÁBITOS ==============

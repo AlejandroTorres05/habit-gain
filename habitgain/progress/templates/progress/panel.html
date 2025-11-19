@@ -10,13 +10,25 @@
     <p class="text-muted mb-0" data-onboarding="habits-list">Progreso de hoy: <strong>{{ completed }}</strong> de <strong>{{ total }}</strong>
       completados</p>
   </div>
-  <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}" data-onboarding="create-habit">
-    <i class="bi bi-plus-circle"></i> Nuevo Hábito
-  </a>
-  <a class="btn btn-ghost ms-2" href="{{ url_for('explore.home') }}">
-    <i class="bi bi-compass"></i> Explorar plantillas
-  </a>
+  <div class="d-flex align-items-center gap-2">
+    <a class="btn btn-primary rounded-pill" href="{{ url_for('habits.create') }}" data-onboarding="create-habit">
+      <i class="bi bi-plus-circle"></i> Nuevo Hábito
+    </a>
+    <a class="btn btn-ghost" href="{{ url_for('progress.stats') }}">
+      <i class="bi bi-graph-up"></i> Ver estadísticas
+    </a>
+    <a class="btn btn-ghost" href="{{ url_for('explore.home') }}">
+      <i class="bi bi-compass"></i> Explorar plantillas
+    </a>
+  </div>
 </div>
+
+<!-- TT-12 CDA2: Mensaje empático al perder racha -->
+{% if streak_loss_message %}
+<div class="alert alert-warning glass mb-3 streak-warning" role="alert">
+  <strong>{{ streak_loss_message.title }}</strong> {{ streak_loss_message.text }}
+</div>
+{% endif %}
 
 <!-- HU-17 CDA3: Banner motivacional dinámico con auto-dismiss -->
 {% if motivation_message %}
