@@ -368,6 +368,71 @@ section .section-title {
     animation: streak-lost 1.5s ease-in-out 3;
 }
 
+/* TT-12 CDA3/CDA4: Calendario de estadísticas */
+.stats-calendar {
+    width: 100%;
+}
+
+.calendar-cell {
+    border-radius: 8px;
+    padding: 0.35rem 0;
+    margin: 0 2px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.calendar-cell-header {
+    font-weight: 600;
+}
+
+.calendar-day-number {
+    display: inline-block;
+}
+
+.calendar-cell.completed {
+    background: rgba(46, 204, 113, 0.85);
+    color: #fff;
+}
+
+.calendar-cell.missed {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.calendar-cell.future {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.2);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.calendar-cell.other-month {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.calendar-legend {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    margin-right: 4px;
+}
+
+.calendar-legend.completed {
+    background: rgba(46, 204, 113, 0.85);
+}
+
+.calendar-legend.missed {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.calendar-legend.future {
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
 /* CDA 3: Mensaje motivacional con auto-dismiss */
 .motivation-banner {
     position: relative;

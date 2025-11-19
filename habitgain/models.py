@@ -995,10 +995,35 @@ class Completion:
             conn.close()
 
     @staticmethod
-    def get_current_streak(habit_id: int, owner_email: str) -> int:
+    def get_completion_dates_in_range(owner_email: str, start_date: str, end_date: str) -> List[str]:
+        """Retorna todas las fechas (YYYY-MM-DD) con al menos un hábito completado en el rango.
+
+        Útil para vistas de calendario/heatmap.
         """
-        Calcula la racha actual de cumplimiento de un hábito.
-        Cuenta días consecutivos desde hoy hacia atrás.
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT DISTINCT date
+                FROM habit_completions
+                WHERE owner_email=? AND date BETWEEN ? AND ?
+                ORDER BY date ASC
+                """,
+                (owner_email, start_date, end_date),
+            )
+            rows = cur.fetchall()
+            return [r["date"] for r in rows]
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_current_streak(habit_id: int, owner_email: str) -> int:
+        """Calcula la racha actual de cumplimiento de un hábito.
+
+        Cuenta días consecutivos desde hoy hacia atrás utilizando las fechas de
+        la tabla habit_completions.
         """
         import datetime as _dt
         db = Database()
@@ -1024,7 +1049,6 @@ class Completion:
             completion_dates = [_dt.date.fromisoformat(r[0]) for r in rows]
             today = _dt.date.today()
 
-            # Verificar si completó hoy
             streak = 0
             expected_date = today
 
@@ -1037,6 +1061,44 @@ class Completion:
                     break
 
             return streak
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_best_streak(habit_id: int, owner_email: str) -> int:
+        """Calcula la mejor racha histórica (máximo de días consecutivos) de un hábito.
+
+        A diferencia de get_current_streak, aquí buscamos la racha más larga en
+        todas las fechas registradas para ese hábito.
+        """
+        import datetime as _dt
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT date FROM habit_completions
+                WHERE habit_id=? AND owner_email=?
+                ORDER BY date ASC
+                """,
+                (habit_id, owner_email),
+            )
+            rows = cur.fetchall()
+            if not rows:
+                return 0
+
+            dates = [_dt.date.fromisoformat(r[0]) for r in rows]
+            best = 1
+            current = 1
+            for prev, curr in zip(dates, dates[1:]):
+                if (curr - prev).days == 1:
+                    current += 1
+                    if current > best:
+                        best = current
+                else:
+                    current = 1
+            return best
         finally:
             conn.close()
 
