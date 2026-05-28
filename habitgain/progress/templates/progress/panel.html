@@ -18,6 +18,27 @@
   </a>
 </div>
 
+<!-- Goal Meter: meta activa del emprendedor -->
+{% if user_goal %}
+<div class="glass goal-meter-card rounded-4 p-3 mb-4 d-flex flex-column flex-md-row align-items-md-center gap-3">
+  <div class="goal-meter-icon flex-shrink-0">🎯</div>
+  <div class="flex-grow-1">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <span class="fw-semibold small text-uppercase tracking-wide" style="letter-spacing:.05em; opacity:.7;">Tu meta</span>
+      <span class="badge badge-goal">{{ goal_progress }}% esta semana</span>
+    </div>
+    <div class="fw-bold mb-2" style="font-size:1.05rem;">{{ user_goal.goal_text }}</div>
+    <div class="progress-bar-goal-wrap rounded-pill overflow-hidden" style="height:8px; background:rgba(255,255,255,.15);">
+      <div class="progress-bar-goal rounded-pill" style="width:{{ goal_progress }}%;"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+      <small class="text-muted">{{ total }} hábito{{ 's' if total != 1 else '' }} activo{{ 's' if total != 1 else '' }}</small>
+      <small class="text-muted">{{ days_completed }} de 7 días con avance</small>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- HU-17 CDA3: Banner motivacional dinámico con auto-dismiss -->
 {% if motivation_message %}
 <!-- Botón para mostrar el mensaje nuevamente (oculto inicialmente) -->

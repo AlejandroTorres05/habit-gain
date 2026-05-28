@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 import datetime as _dt
 import secrets
-from ..models import Habit, Completion, DailyProgress, Category, OnboardingStatus
+from ..models import Habit, Completion, DailyProgress, Category, OnboardingStatus, UserGoal
 from ..behavioral_science import MotivationalMessages, calculate_user_motivation_stats
 
 progress_bp = Blueprint("progress", __name__, template_folder="templates")
@@ -105,6 +105,10 @@ def panel():
     # HU-18: Verificar si el usuario necesita onboarding
     needs_onboarding = OnboardingStatus.needs_onboarding(user)
 
+    # Meta activa del emprendedor y progreso
+    user_goal = UserGoal.get_active(user)
+    goal_progress = min(100, int(round((days_completed / 7) * 100)))
+
     return render_template(
         "progress/panel.html",
         habits=habits,
@@ -125,6 +129,8 @@ def panel():
         csrf_token=csrf_token,
         motivation_message=motivation_message,
         needs_onboarding=needs_onboarding,
+        user_goal=user_goal,
+        goal_progress=goal_progress,
     )
 
 

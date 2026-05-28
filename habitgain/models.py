@@ -157,6 +157,21 @@ class Database:
         )
         self._maybe_create_index(conn, "onboarding_status", "idx_onboarding_email", "user_email")
 
+        # ---- Tabla de user_goals (meta del emprendedor) ----
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_goals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_email TEXT NOT NULL UNIQUE,
+                goal_text TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_email) REFERENCES users(email)
+            )
+            """
+        )
+        self._maybe_create_index(conn, "user_goals", "idx_user_goals_email", "user_email")
+
         conn.commit()
         conn.close()
 
@@ -1343,5 +1358,51 @@ class OnboardingStatus:
                 "skip_rate": round(skip_rate, 2),
                 "avg_steps_completed": round(avg_steps, 2)
             }
+        finally:
+            conn.close()
+
+
+# ===========================
+# UserGoal Model
+# ===========================
+class UserGoal:
+    """Meta activa del emprendedor — texto libre ingresado durante el onboarding."""
+
+    @staticmethod
+    def set_goal(user_email: str, goal_text: str) -> None:
+        import datetime
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO user_goals (user_email, goal_text, status, created_at)
+                VALUES (?, ?, 'active', ?)
+                ON CONFLICT(user_email) DO UPDATE SET
+                    goal_text = excluded.goal_text,
+                    status = 'active',
+                    created_at = excluded.created_at
+                """,
+                (user_email, goal_text, datetime.datetime.utcnow().isoformat())
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_active(user_email: str) -> Optional[Dict[str, Any]]:
+        db = Database()
+        conn = db.get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT user_email, goal_text, status, created_at FROM user_goals WHERE user_email = ? AND status = 'active'",
+                (user_email,)
+            )
+            row = cur.fetchone()
+            if row:
+                return dict(row)
+            return None
         finally:
             conn.close()

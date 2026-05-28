@@ -1,12 +1,124 @@
 """
-HU-18: Onboarding Interactivo
+HU-18: Onboarding Interactivo + Onboarding de Metas (emprendedores)
 Blueprint para gestionar el onboarding de nuevos usuarios
 """
 
-from flask import Blueprint, request, jsonify, session
-from ..models import OnboardingStatus
+from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash
+from ..models import OnboardingStatus, UserGoal, Habit
 
 onboarding_bp = Blueprint("onboarding", __name__, template_folder="templates")
+
+# Hábitos sugeridos para el demo (meta: construir base de clientes)
+# Basados en Fanatical Prospecting (Blount), Never Split the Difference (Voss) y Atomic Habits (Clear)
+DEMO_HABITS = [
+    {
+        "name": "Bloque de prospección matutina",
+        "short_desc": "30 minutos diarios protegidos para conectar con nuevos prospectos, antes de cualquier otra tarea",
+        "icon": "🌅",
+        "frequency": "daily",
+        "category_id": 2,
+    },
+    {
+        "name": "Escucha activa en conversaciones",
+        "short_desc": "En cada reunión o llamada, hacer al menos 3 preguntas abiertas y tomar nota de lo que realmente necesita el interlocutor",
+        "icon": "👂",
+        "frequency": "daily",
+        "category_id": 1,
+    },
+    {
+        "name": "Publicar contenido de valor",
+        "short_desc": "Compartir un aprendizaje, insight o experiencia útil para tu audiencia objetivo en LinkedIn u otra red",
+        "icon": "✍️",
+        "frequency": "weekly",
+        "category_id": 2,
+    },
+    {
+        "name": "Conversación de networking 1:1",
+        "short_desc": "Tener una conversación genuina con alguien de tu industria sin expectativa de venta inmediata",
+        "icon": "🤝",
+        "frequency": "weekly",
+        "category_id": 1,
+    },
+    {
+        "name": "Reflexión diaria de conversaciones",
+        "short_desc": "Dedicar 15 minutos al final del día para anotar qué funcionó, qué no, y qué ajustar en las próximas interacciones",
+        "icon": "📓",
+        "frequency": "daily",
+        "category_id": 2,
+    },
+]
+
+
+@onboarding_bp.route("/goal", methods=["GET"])
+def goal_input():
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("auth.login"))
+    return render_template("onboarding/goal_input.html")
+
+
+@onboarding_bp.route("/goal", methods=["POST"])
+def goal_input_post():
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    goal_text = request.form.get("goal_text", "").strip()
+    if not goal_text:
+        flash("Por favor escribe tu meta antes de continuar.", "warning")
+        return redirect(url_for("onboarding.goal_input"))
+
+    UserGoal.set_goal(user["email"], goal_text)
+    session["pending_goal_text"] = goal_text
+    session.modified = True
+    return redirect(url_for("onboarding.habit_suggest"))
+
+
+@onboarding_bp.route("/habits", methods=["GET"])
+def habit_suggest():
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    goal_text = session.get("pending_goal_text") or (
+        (UserGoal.get_active(user["email"]) or {}).get("goal_text", "")
+    )
+    return render_template(
+        "onboarding/habit_suggest.html",
+        goal_text=goal_text,
+        habits=DEMO_HABITS,
+    )
+
+
+@onboarding_bp.route("/habits", methods=["POST"])
+def habit_suggest_post():
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    selected_indices = request.form.getlist("habit_idx")
+    user_email = user["email"]
+
+    for idx_str in selected_indices:
+        try:
+            idx = int(idx_str)
+            if 0 <= idx < len(DEMO_HABITS):
+                h = DEMO_HABITS[idx]
+                Habit.create(
+                    email=user_email,
+                    name=h["name"],
+                    short_desc=h["short_desc"],
+                    category_id=h["category_id"],
+                    frequency=h["frequency"],
+                    icon=h["icon"],
+                )
+        except (ValueError, Exception):
+            continue
+
+    OnboardingStatus.mark_completed(user_email)
+    session.pop("pending_goal_text", None)
+    flash("¡Tus hábitos están listos! Empieza a trabajar en tu meta hoy.", "success")
+    return redirect(url_for("progress.panel"))
 
 
 @onboarding_bp.route("/step", methods=["POST"])

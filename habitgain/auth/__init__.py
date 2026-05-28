@@ -92,7 +92,7 @@ def register():
             session["user"] = {"email": email, "name": name}
 
             flash("¡Cuenta creada exitosamente! Bienvenido/a a HabitGain.", "success")
-            return redirect(url_for("progress.panel"))
+            return redirect(url_for("onboarding.goal_input"))
         except Exception as e:
             flash(f"Error al crear la cuenta: {str(e)}", "danger")
             return render_template(

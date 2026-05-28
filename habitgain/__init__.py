@@ -23,22 +23,18 @@ def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = SECRET_KEY  # reemplazar en prod por algo serio
 
-    # DB init + seed (solo si es necesario)
+    # DB init — always run (all statements use IF NOT EXISTS, so this is idempotent)
     db = Database()
-    # Solo ejecutar init_db si la tabla users no existe
-    # Esto evita locks innecesarios en cada request
     try:
+        db.init_db()
         conn = db.get_connection()
         cur = conn.cursor()
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-        table_exists = cur.fetchone() is not None
+        cur.execute("SELECT COUNT(*) FROM categories")
+        has_seed = cur.fetchone()[0] > 0
         conn.close()
-
-        if not table_exists:
-            db.init_db()
+        if not has_seed:
             db.seed_data()
     except Exception:
-        # Si hay cualquier error, intentar init completo
         db.init_db()
         db.seed_data()
 

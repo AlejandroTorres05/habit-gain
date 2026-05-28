@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HabitGain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        body, html { height: 100%; }
+
+        .landing-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .landing-brand {
+            font-size: clamp(3.5rem, 12vw, 7rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            background: linear-gradient(135deg, #7c71ff 0%, #2bd2ff 60%, #d946ef 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-tagline {
+            font-size: clamp(1rem, 2.5vw, 1.35rem);
+            color: var(--muted);
+            max-width: 480px;
+            margin: 1.25rem auto 0;
+            line-height: 1.6;
+        }
+
+        .landing-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .badge-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c71ff, #2bd2ff);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 12px rgba(107, 91, 255, 0.5);
+        }
+
+        .feature-pills {
+            display: flex;
+            gap: .65rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+
+        .feature-pill {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            backdrop-filter: blur(12px);
+            border-radius: 999px;
+            padding: .4rem .9rem;
+            font-size: .82rem;
+            color: var(--muted);
+        }
+
+        .feature-pill i {
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-blur"></div>
+    <div class="bg-gradient"></div>
+
+    <div class="landing-wrapper">
+        <span class="badge-dot"></span>
+
+        <h1 class="landing-brand">HABITGAIN</h1>
+
+        <p class="landing-tagline">
+            Convierte tus metas en hábitos reales.<br>
+            Con IA y ciencia del comportamiento, cada pequeño paso te acerca a quien quieres ser.
+        </p>
+
+        <div class="landing-actions">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary px-4 py-2">
+                <i class="bi bi-rocket-takeoff me-1"></i> Comenzar gratis
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-ghost px-4 py-2">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+            </a>
+        </div>
+
+        <div class="feature-pills">
+            <span class="feature-pill"><i class="bi bi-stars"></i> Hábitos con IA</span>
+            <span class="feature-pill"><i class="bi bi-graph-up-arrow"></i> Progreso visual</span>
+            <span class="feature-pill"><i class="bi bi-bullseye"></i> Metas personalizadas</span>
+            <span class="feature-pill"><i class="bi bi-lightning-charge"></i> Racha diaria</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -9,12 +9,9 @@ def _is_logged_in() -> bool:
 
 @core_bp.route("/")
 def home():
-    # Si ya está logueado, mándalo a explorar
     if _is_logged_in():
-        # <- antes decía explore.explore
         return redirect(url_for("explore.home"))
-    # Si no hay sesión, manda a login (ajusta el endpoint si tu auth usa otro nombre)
-    return redirect(url_for("auth.login"))
+    return render_template("landing.html")
 
 # Opcional: una ruta de salud si necesitas chequear que el server vive
 

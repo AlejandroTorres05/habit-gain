@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Experimento — HabitGain{% endblock %}
+
+{% block content %}
+<style>
+  .avatar-circle {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 1rem; color: #fff;
+    flex-shrink: 0;
+  }
+  .habit-row {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .45rem 0;
+    border-bottom: 1px dashed rgba(0,0,0,.07);
+  }
+  .habit-row:last-child { border-bottom: none; }
+  .habit-bar-wrap {
+    flex: 1; height: 6px;
+    background: rgba(0,0,0,.08); border-radius: 999px; overflow: hidden;
+  }
+  .habit-bar { height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #7c71ff, #2bd2ff); }
+  .stat-chip {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.08);
+    border-radius: 999px; padding: .25rem .7rem; font-size: .78rem; font-weight: 600;
+  }
+  .quote-box {
+    background: rgba(107,91,255,.06); border-left: 3px solid #7c71ff;
+    border-radius: 0 10px 10px 0; padding: .65rem 1rem;
+    font-style: italic; color: var(--muted); font-size: .9rem; margin-top: .75rem;
+  }
+  .report-header-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(107,91,255,.12); color: #5c4dff;
+    border-radius: 999px; padding: .3rem .85rem; font-size: .78rem; font-weight: 700;
+    letter-spacing: .05em; text-transform: uppercase;
+  }
+  .global-stat { text-align: center; padding: 1rem; }
+  .global-stat .val {
+    font-size: 2rem; font-weight: 900;
+    background: linear-gradient(135deg,#7c71ff,#2bd2ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .global-stat .lbl { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+  .chart-wrap { position: relative; height: 160px; }
+  .chart-wrap-lg { position: relative; height: 220px; }
+  .section-sep {
+    height: 1px; background: rgba(0,0,0,.07);
+    margin: 2rem 0;
+  }
+</style>
+
+<!-- ===== HEADER ===== -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+  <div>
+    <span class="report-header-badge mb-2"><i class="bi bi-flask"></i> Experimento · Abril–Mayo 2025</span>
+    <h1 class="fw-bold mb-1">Reporte de Emprendedores</h1>
+    <p class="text-muted mb-0">1 mes de uso real con 5 emprendedores · 17 hábitos activos</p>
+  </div>
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm">
+    <i class="bi bi-arrow-left"></i> Volver al admin
+  </a>
+</div>
+
+<!-- ===== GLOBAL STATS ===== -->
+<div class="card glass mb-4">
+  <div class="card-body py-3">
+    <div class="row g-0 divide-x">
+      <div class="col-6 col-md-3 global-stat border-end">
+        <div class="val">5</div>
+        <div class="lbl">Emprendedores</div>
+      </div>
+      <div class="col-6 col-md-3 global-stat border-end">
+        <div class="val">17</div>
+        <div class="lbl">Hábitos activos</div>
+      </div>
+      <div class="col-6 col-md-3 global-stat border-end">
+        <div class="val">79%</div>
+        <div class="lbl">Tasa de cumplimiento</div>
+      </div>
+      <div class="col-6 col-md-3 global-stat">
+        <div class="val">24</div>
+        <div class="lbl">Racha promedio (días)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GLOBAL TREND CHART ===== -->
+<div class="card glass mb-5">
+  <div class="card-body">
+    <h6 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Progreso global — % cumplimiento semanal</h6>
+    <div class="chart-wrap-lg">
+      <canvas id="globalChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+<h5 class="fw-bold mb-4"><i class="bi bi-people me-2"></i>Perfiles individuales</h5>
+
+<!-- ===== ENTREPRENEUR CARDS ===== -->
+{% for e in entrepreneurs %}
+<div class="card glass mb-4 shadow-hover">
+  <div class="card-body">
+
+    <!-- Header del perfil -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="avatar-circle" style="background: {{ e.avatar_bg }};">{{ e.initials }}</div>
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h5 class="mb-0 fw-bold">{{ e.name }}</h5>
+          <span class="badge rounded-pill" style="background:{{ e.color }}20; color:{{ e.color }}; font-weight:700;">
+            {{ e.sector }}
+          </span>
+        </div>
+        <small class="text-muted"><i class="bi bi-bullseye me-1"></i>{{ e.goal }}</small>
+      </div>
+      <div class="text-end d-none d-md-block">
+        <div class="fw-black" style="font-size:1.6rem; color:{{ e.color }};">{{ e.overall_pct }}%</div>
+        <small class="text-muted">cumplimiento</small>
+      </div>
+    </div>
+
+    <!-- Stats chips -->
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <span class="stat-chip"><i class="bi bi-fire text-danger"></i> {{ e.streak }} días de racha</span>
+      <span class="stat-chip"><i class="bi bi-calendar-check text-success"></i> {{ e.days_active }}/30 días activo</span>
+      <span class="stat-chip"><i class="bi bi-list-check" style="color:{{ e.color }};"></i> {{ e.habits|length }} hábitos</span>
+    </div>
+
+    <div class="row g-4">
+      <!-- Hábitos -->
+      <div class="col-md-6">
+        <p class="section-kicker mb-2">Hábitos del mes</p>
+        {% for h in e.habits %}
+        <div class="habit-row">
+          <span style="font-size:1.1rem;">{{ h.icon }}</span>
+          <span class="flex-grow-1 small fw-medium" style="min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ h.name }}
+          </span>
+          <div class="habit-bar-wrap" style="max-width:90px;">
+            <div class="habit-bar" style="width:{{ h.pct }}%; background: linear-gradient(90deg, {{ e.color }}, #2bd2ff);"></div>
+          </div>
+          <span class="small fw-bold" style="width:36px; text-align:right; color:{{ e.color }};">{{ h.pct }}%</span>
+        </div>
+        {% endfor %}
+        <div class="quote-box">
+          "{{ e.quote }}"
+        </div>
+      </div>
+
+      <!-- Gráfica semanal -->
+      <div class="col-md-6">
+        <p class="section-kicker mb-2">Hábitos completados / semana</p>
+        <div class="chart-wrap">
+          <canvas id="chart_{{ e.id }}"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endfor %}
+
+<!-- ===== COMPARISON CHART ===== -->
+<div class="card glass mt-2 mb-4">
+  <div class="card-body">
+    <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2 text-primary"></i>Comparativa — % cumplimiento por emprendedor</h6>
+    <div class="chart-wrap-lg">
+      <canvas id="compareChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<p class="text-muted small text-center pb-3">
+  <i class="bi bi-info-circle me-1"></i> Datos de experimento · HabitGain MVP · Abril–Mayo 2025
+</p>
+
+<!-- ===== CHART.JS ===== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const WEEKS = ["Sem 1", "Sem 2", "Sem 3", "Sem 4"];
+
+const baseOpts = (color) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { callbacks: {
+    label: ctx => ` ${ctx.parsed.y} hábitos completados`
+  }}},
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+    y: { grid: { color: "rgba(0,0,0,.05)" }, ticks: { stepSize: 1, font: { size: 11 } }, beginAtZero: true }
+  }
+});
+
+// Individual charts
+{% for e in entrepreneurs %}
+(function(){
+  const ctx = document.getElementById("chart_{{ e.id }}");
+  const data = {{ e.weekly_done[:4] | tojson }};
+  const color = "{{ e.color }}";
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: WEEKS,
+      datasets: [{
+        data: data,
+        backgroundColor: color + "33",
+        borderColor: color,
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: baseOpts(color)
+  });
+})();
+{% endfor %}
+
+// Global trend
+(function(){
+  const ctx = document.getElementById("globalChart");
+  const data = {{ global_weekly | tojson }};
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: WEEKS,
+      datasets: [{
+        label: "% Cumplimiento promedio",
+        data: data,
+        borderColor: "#7c71ff",
+        backgroundColor: "rgba(124,113,255,.12)",
+        borderWidth: 3,
+        pointBackgroundColor: "#7c71ff",
+        pointRadius: 5,
+        fill: true,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        label: ctx => ` ${ctx.parsed.y}% cumplimiento promedio`
+      }}},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+        y: {
+          min: 0, max: 100,
+          grid: { color: "rgba(0,0,0,.05)" },
+          ticks: { callback: v => v + "%", font: { size: 12 } }
+        }
+      }
+    }
+  });
+})();
+
+// Comparison bar chart
+(function(){
+  const ctx = document.getElementById("compareChart");
+  const names  = {{ entrepreneurs | map(attribute="name") | list | tojson }};
+  const pcts   = {{ entrepreneurs | map(attribute="overall_pct") | list | tojson }};
+  const colors = {{ entrepreneurs | map(attribute="color") | list | tojson }};
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: names,
+      datasets: [{
+        label: "% Cumplimiento",
+        data: pcts,
+        backgroundColor: colors.map(c => c + "44"),
+        borderColor: colors,
+        borderWidth: 2,
+        borderRadius: 10,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        label: ctx => ` ${ctx.parsed.y}% cumplimiento`
+      }}},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+        y: {
+          min: 0, max: 100,
+          grid: { color: "rgba(0,0,0,.05)" },
+          ticks: { callback: v => v + "%", font: { size: 12 } }
+        }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

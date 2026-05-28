@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Plan personalizado – HabitGain{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 75vh;">
+  <div class="glass rounded-4 p-4 p-md-5 w-100" style="max-width: 640px;">
+
+    <!-- ───── Estado 1: Analizando ───── -->
+    <div id="stateAnalyzing">
+      <div class="text-center mb-4">
+        <div class="mb-3" style="font-size: 3rem; line-height:1;">🤖</div>
+        <h2 class="fw-bold mb-1">Analizando tu meta…</h2>
+        <p class="text-muted mb-0 fst-italic ai-quote">"{{ goal_text }}"</p>
+      </div>
+
+      <div class="ai-progress-bar mb-4">
+        <div class="ai-progress-fill" id="aiFill"></div>
+      </div>
+
+      <ul class="list-unstyled ai-steps mb-0" id="aiSteps">
+        <li class="ai-step" id="aiStep0">
+          <span class="ai-step-icon">⏳</span>
+          <span>Procesando tu objetivo…</span>
+        </li>
+        <li class="ai-step d-none" id="aiStep1">
+          <span class="ai-step-icon">🔍</span>
+          <span>Identificando hábitos clave…</span>
+        </li>
+        <li class="ai-step d-none" id="aiStep2">
+          <span class="ai-step-icon">🧠</span>
+          <span>Adaptando a tu perfil de emprendedor…</span>
+        </li>
+        <li class="ai-step d-none" id="aiStep3">
+          <span class="ai-step-icon">✅</span>
+          <span>Plan personalizado listo</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ───── Estado 2: Resultados ───── -->
+    <div id="stateResults" class="d-none">
+      <div class="text-center mb-4">
+        <div class="mb-2" style="font-size: 2.5rem; line-height:1;">✅</div>
+        <h2 class="fw-bold mb-1">¡Plan personalizado listo!</h2>
+        <p class="text-muted mb-0">Meta: <span class="fw-semibold ai-quote-result"></span></p>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="mb-0 small text-muted">Selecciona los hábitos que quieres desarrollar:</p>
+        <button type="button" class="btn btn-ghost btn-sm" id="selectAllBtn" onclick="toggleSelectAll()">
+          <i class="bi bi-check2-all me-1"></i>Seleccionar todos
+        </button>
+      </div>
+
+      <form method="POST" action="{{ url_for('onboarding.habit_suggest_post') }}" id="habitsForm">
+        <div class="d-flex flex-column gap-3 mb-4">
+          {% for habit in habits %}
+          <label class="habit-suggest-card d-flex align-items-start gap-3 p-3 rounded-3" style="cursor:pointer;">
+            <input
+              type="checkbox"
+              name="habit_idx"
+              value="{{ loop.index0 }}"
+              class="habit-checkbox form-check-input mt-1 flex-shrink-0"
+            >
+            <div class="flex-grow-1">
+              <div class="fw-semibold">{{ habit.icon }} {{ habit.name }}</div>
+              <div class="text-muted small">{{ habit.short_desc }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-gradient w-100 py-3 fw-semibold fs-5 rounded-3" id="confirmBtn">
+          <i class="bi bi-rocket-takeoff me-2"></i>Agregar hábitos y comenzar
+        </button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('progress.panel') }}" class="text-muted small">Omitir por ahora →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    const goalText = {{ goal_text | tojson }};
+    document.querySelector('.ai-quote-result').textContent = goalText;
+
+    const steps = [
+      { id: 'aiStep0', delay: 0, fillTo: 20 },
+      { id: 'aiStep1', delay: 700, fillTo: 55 },
+      { id: 'aiStep2', delay: 1400, fillTo: 85 },
+      { id: 'aiStep3', delay: 2100, fillTo: 100 },
+    ];
+
+    const fill = document.getElementById('aiFill');
+
+    steps.forEach(({ id, delay, fillTo }) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('d-none');
+          el.classList.add('ai-step-visible');
+          el.querySelector('.ai-step-icon').textContent =
+            id === 'aiStep3' ? '✅' : el.querySelector('.ai-step-icon').textContent;
+        }
+        fill.style.width = fillTo + '%';
+      }, delay);
+    });
+
+    // Show results after 2800ms
+    setTimeout(() => {
+      document.getElementById('stateAnalyzing').classList.add('d-none');
+      document.getElementById('stateResults').classList.remove('d-none');
+    }, 2800);
+  })();
+
+  let allSelected = false;
+  function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.habit-checkbox');
+    const btn = document.getElementById('selectAllBtn');
+    allSelected = !allSelected;
+    checkboxes.forEach(cb => cb.checked = allSelected);
+    if (allSelected) {
+      btn.innerHTML = '<i class="bi bi-x-square me-1"></i>Deseleccionar todos';
+    } else {
+      btn.innerHTML = '<i class="bi bi-check2-all me-1"></i>Seleccionar todos';
+    }
+  }
+
+  // Keep "select all" button label in sync when individual checkboxes change
+  document.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('habit-checkbox')) return;
+    const all = document.querySelectorAll('.habit-checkbox');
+    const checked = document.querySelectorAll('.habit-checkbox:checked');
+    allSelected = all.length === checked.length;
+    const btn = document.getElementById('selectAllBtn');
+    if (btn) {
+      btn.innerHTML = allSelected
+        ? '<i class="bi bi-x-square me-1"></i>Deseleccionar todos'
+        : '<i class="bi bi-check2-all me-1"></i>Seleccionar todos';
+    }
+  });
+</script>
+{% endblock %}

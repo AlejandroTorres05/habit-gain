@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Tu meta – HabitGain{% endblock %}
+{% block content %}
+
+<div class="goal-input-page d-flex flex-column align-items-center justify-content-center" style="min-height: 75vh;">
+
+  <div class="glass goal-input-card p-4 p-md-5 rounded-4 w-100" style="max-width: 640px;">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="mb-3" style="font-size: 3rem; line-height:1;">🎯</div>
+      <h1 class="fw-bold mb-1" style="font-size: 1.75rem;">¿Cuál es tu meta como emprendedor?</h1>
+      <p class="text-muted mb-0">Cuéntanos tu objetivo y nuestros agentes de IA diseñarán un plan de hábitos personalizado para ti.</p>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('onboarding.goal_input_post') }}" id="goalForm">
+      <div class="mb-4">
+        <textarea
+          class="form-control goal-textarea rounded-3"
+          id="goal_text"
+          name="goal_text"
+          rows="3"
+          maxlength="300"
+          placeholder="Ej: Construir mi primera base de clientes en los próximos 3 meses"
+          required
+        ></textarea>
+        <div class="d-flex justify-content-end mt-1">
+          <small class="text-muted" id="charCount">0 / 300</small>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-gradient w-100 py-3 fw-semibold fs-5 rounded-3" id="submitBtn">
+        <span id="btnText"><i class="bi bi-stars me-2"></i>Analizar mi meta</span>
+        <span id="btnLoading" class="d-none">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando…
+        </span>
+      </button>
+    </form>
+
+    <!-- AI note -->
+    <div class="text-center mt-4 d-flex align-items-center justify-content-center gap-2">
+      <span style="font-size:1.1rem;">🤖</span>
+      <small class="text-muted">Nuestros agentes de IA identificarán los hábitos clave para tu éxito</small>
+    </div>
+
+  </div>
+
+  <!-- Skip link -->
+  <a href="{{ url_for('progress.panel') }}" class="mt-3 text-muted small">
+    Omitir por ahora →
+  </a>
+
+</div>
+
+<script>
+  const textarea = document.getElementById('goal_text');
+  const counter = document.getElementById('charCount');
+
+  textarea.addEventListener('input', () => {
+    counter.textContent = textarea.value.length + ' / 300';
+  });
+
+  document.getElementById('goalForm').addEventListener('submit', () => {
+    document.getElementById('btnText').classList.add('d-none');
+    document.getElementById('btnLoading').classList.remove('d-none');
+    document.getElementById('submitBtn').disabled = true;
+  });
+</script>
+{% endblock %}

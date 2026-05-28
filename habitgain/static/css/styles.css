@@ -898,3 +898,119 @@ section .section-title {
     font-size: 1.5rem;
     animation: onboarding-confetti-burst 2s ease-out forwards;
 }
+
+/* ===========================
+   Goal Onboarding & Goal Meter
+   =========================== */
+
+/* Goal input page */
+.goal-textarea {
+    font-size: 1.1rem;
+    min-height: 90px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.2);
+    color: inherit;
+    resize: none;
+    transition: border-color .2s;
+}
+.goal-textarea:focus {
+    background: rgba(255,255,255,.12);
+    border-color: #6b5bff;
+    box-shadow: 0 0 0 3px rgba(107,91,255,.15);
+    color: inherit;
+}
+
+.btn-gradient {
+    background: linear-gradient(90deg, #6b5bff, #2bd2ff);
+    border: none;
+    color: #fff;
+    transition: opacity .2s, transform .15s;
+}
+.btn-gradient:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+    color: #fff;
+}
+.btn-gradient:active {
+    transform: translateY(0);
+}
+
+/* AI analyzing animation */
+.ai-progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,.12);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.ai-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6b5bff, #2bd2ff);
+    border-radius: 99px;
+    transition: width .6s ease;
+}
+
+.ai-steps {
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+}
+.ai-step {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity .4s ease, transform .4s ease;
+    font-size: .95rem;
+}
+.ai-step-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+.ai-step-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.ai-quote {
+    font-size: .92rem;
+    opacity: .75;
+    word-break: break-word;
+}
+
+/* Habit suggest checkboxes */
+.habit-suggest-card {
+    background: rgba(255,255,255,.07);
+    border: 1.5px solid rgba(255,255,255,.12);
+    transition: border-color .2s, background .2s;
+}
+.habit-suggest-card:hover {
+    background: rgba(107,91,255,.12);
+    border-color: rgba(107,91,255,.4);
+}
+.habit-suggest-card:has(input:checked) {
+    background: rgba(107,91,255,.15);
+    border-color: rgba(107,91,255,.5);
+}
+
+/* Goal Meter card */
+.goal-meter-card {
+    border-left: 3px solid #6b5bff;
+}
+.goal-meter-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+.badge-goal {
+    background: linear-gradient(90deg, #6b5bff, #2bd2ff);
+    color: #fff;
+    font-size: .75rem;
+    padding: .25em .65em;
+    border-radius: 99px;
+}
+.progress-bar-goal {
+    height: 100%;
+    background: linear-gradient(90deg, #6b5bff, #2bd2ff);
+    border-radius: 99px;
+    transition: width .8s ease;
+}
