@@ -86,6 +86,7 @@ class Database:
         self._ensure_column(conn, "users", "password_hash", "TEXT")
         self._ensure_column(conn, "users", "password_salt", "TEXT")
         self._ensure_column(conn, "users", "role", "TEXT DEFAULT 'user'")
+        self._ensure_column(conn, "users", "plan", "TEXT DEFAULT 'free'")
         self._maybe_create_index(conn, "users", "idx_users_email", "email")
         self._migrate_users_passwords(conn)
         self._backfill_missing_user_hashes(conn)
@@ -467,7 +468,7 @@ class User:
         try:
             cur = conn.cursor()
             cur.execute(
-                "SELECT id, email, name, password_hash, password_salt, role FROM users WHERE email=?", (email,))
+                "SELECT id, email, name, password_hash, password_salt, role, plan FROM users WHERE email=?", (email,))
             row = cur.fetchone()
             return dict(row) if row else None
         finally:

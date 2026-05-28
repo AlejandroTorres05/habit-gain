@@ -13,6 +13,7 @@ from .profile import profile_bp
 from .manage import manage_bp
 from .admin import admin_bp
 from .onboarding import onboarding_bp
+from .premium import premium_bp
 from .models import Database
 
 # SECRET_KEY configurable por entorno, con fallback dev
@@ -60,19 +61,23 @@ def create_app():
             except BuildError:
                 continue
 
-        # Verificar si el usuario actual es admin
+        # Verificar si el usuario actual es admin y su plan
         is_admin = False
+        user_plan = "free"
         if "user" in session:
             user_email = session["user"].get("email")
             if user_email:
                 user = User.get_by_email(user_email)
-                if user and user.get("role") == "admin":
-                    is_admin = True
+                if user:
+                    if user.get("role") == "admin":
+                        is_admin = True
+                    user_plan = user.get("plan") or "free"
 
         return {
             "has_auth": "auth" in app.blueprints,
             "panel_url": panel_url,
             "is_admin": is_admin,
+            "user_plan": user_plan,
         }
 
     # ===== Blueprints =====
@@ -85,5 +90,6 @@ def create_app():
     app.register_blueprint(manage_bp,      url_prefix="/manage")
     app.register_blueprint(admin_bp,       url_prefix="/admin")
     app.register_blueprint(onboarding_bp,  url_prefix="/onboarding")
+    app.register_blueprint(premium_bp)
 
     return app

@@ -61,6 +61,14 @@
                 </li>
                 {% endif %}
 
+                {% if 'user' in session and user_plan != 'pro' %}
+                <li class="nav-item">
+                    <a class="btn btn-premium {{ 'btn-premium-active' if _path.startswith('/premium') else '' }}" href="{{ url_for('premium.plans') }}">
+                        ✨ Premium
+                    </a>
+                </li>
+                {% endif %}
+
                 {% if 'user' not in session %}
                 <li class="nav-item">
                     <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">

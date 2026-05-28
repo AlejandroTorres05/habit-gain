@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Planes Premium — HabitGain{% endblock %}
+{% block content %}
+
+<div class="text-center mb-5">
+    <span class="badge bg-warning text-dark fw-semibold px-3 py-2 rounded-pill mb-3" style="font-size:.8rem; letter-spacing:.08em;">
+        ✨ PREMIUM
+    </span>
+    <h1 class="fw-bold mb-2">Desbloquea todo tu potencial</h1>
+    <p class="text-muted" style="max-width:480px; margin:0 auto;">
+        Obtén más sugerencias de IA, más hábitos activos y herramientas avanzadas para alcanzar tus metas más rápido.
+    </p>
+</div>
+
+<!-- Tarjetas de planes -->
+<div class="row justify-content-center g-4 mb-5">
+
+    <!-- Plan Starter $5 -->
+    <div class="col-12 col-md-5">
+        <div class="card glass h-100 shadow-hover position-relative overflow-hidden {% if current_plan == 'starter' %}plan-active{% endif %}">
+            {% if current_plan == 'starter' %}
+            <div class="plan-current-badge">Plan actual</div>
+            {% endif %}
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span style="font-size:1.6rem;">🚀</span>
+                    <h4 class="mb-0 fw-bold">Starter</h4>
+                </div>
+                <div class="mb-4">
+                    <span class="display-5 fw-bold">$5</span>
+                    <span class="text-muted">/ mes</span>
+                </div>
+                <ul class="list-unstyled mb-4 plan-features">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Hasta <strong>15 hábitos activos</strong></li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>20 sugerencias IA</strong> por mes</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Metas personalizadas con IA</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Estadísticas semanales</li>
+                    <li class="text-muted"><i class="bi bi-dash me-2"></i>Análisis avanzado de rachas</li>
+                    <li class="text-muted"><i class="bi bi-dash me-2"></i>Exportación de datos</li>
+                </ul>
+                {% if current_plan == 'starter' %}
+                <button class="btn btn-outline-secondary w-100 rounded-pill" disabled>
+                    <i class="bi bi-check2"></i> Plan activo
+                </button>
+                {% else %}
+                <a href="#" class="btn btn-primary w-100 rounded-pill" onclick="showComingSoon(event)">
+                    {% if current_plan == 'pro' %}Cambiar a Starter{% else %}Comenzar ahora{% endif %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Pro $10 -->
+    <div class="col-12 col-md-5">
+        <div class="card glass h-100 shadow-hover position-relative overflow-hidden plan-pro {% if current_plan == 'pro' %}plan-active{% endif %}">
+            <div class="plan-popular-badge">⭐ Más popular</div>
+            {% if current_plan == 'pro' %}
+            <div class="plan-current-badge">Plan actual</div>
+            {% endif %}
+            <div class="card-body p-4 pt-5">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span style="font-size:1.6rem;">💎</span>
+                    <h4 class="mb-0 fw-bold">Pro</h4>
+                </div>
+                <div class="mb-4">
+                    <span class="display-5 fw-bold">$10</span>
+                    <span class="text-muted">/ mes</span>
+                </div>
+                <ul class="list-unstyled mb-4 plan-features">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Hábitos <strong>ilimitados</strong></li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Sugerencias IA <strong>ilimitadas</strong></li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Metas personalizadas con IA</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Estadísticas semanales y mensuales</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Análisis avanzado de rachas</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Exportación de datos (CSV)</li>
+                </ul>
+                {% if current_plan == 'pro' %}
+                <button class="btn btn-outline-secondary w-100 rounded-pill" disabled>
+                    <i class="bi bi-check2"></i> Plan activo
+                </button>
+                {% else %}
+                <a href="#" class="btn btn-premium-cta w-100 rounded-pill" onclick="showComingSoon(event)">
+                    Obtener Pro
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comparación free vs premium -->
+<div class="card glass p-4 mb-4" style="max-width:680px; margin:0 auto;">
+    <h5 class="fw-bold mb-3 text-center">Comparado con el plan gratuito</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless mb-0" style="font-size:.95rem;">
+            <thead>
+                <tr class="text-muted small text-uppercase" style="letter-spacing:.07em;">
+                    <th>Función</th>
+                    <th class="text-center">Gratis</th>
+                    <th class="text-center">Starter</th>
+                    <th class="text-center">Pro</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Hábitos activos</td>
+                    <td class="text-center text-muted">5</td>
+                    <td class="text-center">15</td>
+                    <td class="text-center fw-bold">∞</td>
+                </tr>
+                <tr>
+                    <td>Sugerencias IA / mes</td>
+                    <td class="text-center text-muted">3</td>
+                    <td class="text-center">20</td>
+                    <td class="text-center fw-bold">∞</td>
+                </tr>
+                <tr>
+                    <td>Metas con IA</td>
+                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                    <td class="text-center"><i class="bi bi-check2 text-success"></i></td>
+                    <td class="text-center"><i class="bi bi-check2 text-success"></i></td>
+                </tr>
+                <tr>
+                    <td>Análisis de rachas</td>
+                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                    <td class="text-center"><i class="bi bi-check2 text-success"></i></td>
+                </tr>
+                <tr>
+                    <td>Exportar datos</td>
+                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                    <td class="text-center"><i class="bi bi-check2 text-success"></i></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<p class="text-center text-muted small mt-3">
+    <i class="bi bi-shield-check me-1"></i> Cancela cuando quieras · Sin contratos · Pago seguro
+</p>
+
+<!-- Toast "coming soon" -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="comingSoonToast" class="toast glass border-0" data-bs-delay="3000">
+        <div class="toast-body d-flex gap-2 align-items-center">
+            <i class="bi bi-hourglass-split text-warning"></i>
+            <span>¡Pagos disponibles muy pronto! Te notificaremos cuando estén listos.</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function showComingSoon(e) {
+    e.preventDefault();
+    var toast = new bootstrap.Toast(document.getElementById('comingSoonToast'));
+    toast.show();
+}
+</script>
+
+{% endblock %}
