@@ -1,1 +1,1 @@
-web: python setup_admin.py && gunicorn wsgi:app
+web: python setup_admin.py && gunicorn wsgi:app --bind 0.0.0.0:$PORT
